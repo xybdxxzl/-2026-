@@ -1,0 +1,10 @@
+<script setup>
+import { year } from '../state/year.js';
+defineProps({ term: Object, originLabel: String });
+const emit = defineEmits(['return-origin','open-source','navigate']);
+const sections = ['一年中的位置','三候与物候','南北农事案例','天文关系','图文与农谚','本节气资料'];
+function scrollToSection(index) { document.getElementById(`section-${index}`)?.scrollIntoView({ behavior: 'smooth' }); }
+</script>
+<template>
+  <section class="detail-page"><button class="mini-year-dial" aria-label="返回授时总览，保留当前节气" @click="emit('navigate','overview')"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="32" fill="none" stroke="currentColor"/><g :transform="`rotate(${-year.state.yearAngle} 36 36)`"><line v-for="i in 24" :key="i" x1="36" y1="6" x2="36" y2="10" :transform="`rotate(${(i-1)*15} 36 36)`" stroke="currentColor"/></g><path d="M33 3 H39 L36 11Z" fill="#ae5544"/><text x="36" y="41" text-anchor="middle" font-size="13" fill="currentColor">{{term.name}}</text></svg></button><button class="text-link" @click="emit('return-origin')">← {{ originLabel ? `返回来源页面 · ${originLabel}` : '返回授时总览' }}</button><div class="page-heading"><div><p class="eyebrow">节气档案 · {{ term.season }}</p><h1>{{ term.name }}<em>的岁时笔记</em></h1></div><span class="pending-label">正文待整理</span></div><div class="detail-layout"><nav aria-label="档案章节"><a v-for="(title,index) in sections" :href="`#section-${index}`" :key="title" @click.prevent="scrollToSection(index)"><small>0{{ index+1 }}</small>{{ title }}</a></nav><article><section v-for="(title,index) in sections" :id="`section-${index}`" :key="title"><span class="eyebrow">0{{ index+1 }}</span><h2>{{ title }}</h2><p v-if="index===0">{{ term.name }}是本作品立春开篇顺序中的第{{ term.index+1 }}个节气，太阳黄经为{{ term.longitude }}°。</p><p v-else-if="index===3">可进入观天测影，观察该黄经节点下的理想日影模型。当前参数仅供演示。</p><p v-else>该部分暂未录入经过核验的内容。后续将按统一模板补充原文、释义、地域与来源。</p><button v-if="index===3" class="text-link" @click="emit('navigate','sky')">进入观天测影 →</button><button v-else class="text-link" @click="emit('open-source',`${term.name} · ${title}`)">查看资料位置 ↗</button></section></article></div></section>
+</template>

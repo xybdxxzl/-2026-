@@ -1,0 +1,526 @@
+{
+  "schemaVersion": "research-0.1",
+  "preparedAt": "2026-10-29",
+  "purpose": "资料研究与带状态的原型样本；未直接接入网页",
+  "review": {
+    "preparedBy": "Codex",
+    "independentHumanReview": false,
+    "facsimileTextCollation": false,
+    "productionReady": false
+  },
+  "sources": [
+    {
+      "id": "S01",
+      "title": "授时指掌活法之图文件页",
+      "url": "https://commons.wikimedia.org/wiki/File:王禎農書－授時指掌活法之圖.png",
+      "verification": "image_viewed",
+      "locator": "Summary / Original file / Licensing",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S02",
+      "title": "王祯农书卷一",
+      "url": "https://zh.wikisource.org/zh-hans/王禎農書/卷一",
+      "verification": "transcription_read",
+      "locator": "授时篇第一",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S03",
+      "title": "王氏农书四库本目录及卷次",
+      "url": "https://zh.wikisource.org/wiki/王氏農書_(四庫全書本)",
+      "verification": "catalog_and_transcription_read",
+      "locator": "目录；卷01；卷11",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S04",
+      "title": "月令七十二候集解",
+      "url": "https://zh.wikisource.org/wiki/月令七十二候集解",
+      "verification": "transcription_read",
+      "locator": "芒种",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S05",
+      "title": "月令七十二候集解另一入口",
+      "url": "https://ctext.org/wiki.pl?chapter=312762&if=gb",
+      "verification": "search_only_access_403",
+      "locator": "未完成正文比对",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S06",
+      "title": "齐民要术卷第二",
+      "url": "https://zh.wikisource.org/wiki/齊民要術/卷第二",
+      "verification": "transcription_read",
+      "locator": "种麻第八",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S07",
+      "title": "农桑衣食撮要卷上",
+      "url": "https://zh.wikisource.org/wiki/農桑衣食撮要/卷上",
+      "verification": "transcription_read",
+      "locator": "三月浸稻种；四月防雾伤麦；五月插稻秧、收小麦；六月耕麦地",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S08",
+      "title": "农桑衣食撮要卷下",
+      "url": "https://zh.wikisource.org/wiki/農桑衣食撮要/卷下",
+      "verification": "transcription_read",
+      "locator": "八月种大小麦；十月耘麦",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S09",
+      "title": "农桑衣食撮要目录与提要",
+      "url": "https://zh.wikisource.org/zh-hant/農桑衣食撮要",
+      "verification": "catalog_and_transcription_read",
+      "locator": "提要与分卷目录",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S10",
+      "title": "贾思勰与齐民要术研究",
+      "url": "https://agri-history.ihns.ac.cn/history/chapter01.htm",
+      "verification": "search_extract_only_open_timeout",
+      "locator": "地域背景；不可独立支持精确县域",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S11",
+      "title": "中国古代农书研究",
+      "url": "https://agri-history.ihns.ac.cn/books/中国古代农书研究.pdf",
+      "verification": "relevant_pdf_text_read",
+      "locator": "第五章第一节；未完成全书阅读",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S12",
+      "title": "陈旉农书校注目录",
+      "url": "https://agri-history.ihns.ac.cn/books/cfnsjz.htm",
+      "verification": "catalog_only",
+      "locator": "相关正文未成功核读",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S13",
+      "title": "郑州市文物局观星台",
+      "url": "https://wwj.zhengzhou.gov.cn/country/3175217.jhtml",
+      "verification": "institution_page_read",
+      "locator": "观星台及周公测景台",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S14",
+      "title": "河南机构观星台介绍",
+      "url": "https://ytsc.rootinhenan.gov.cn/sitesources/ytsc/page_pc/hnly/zywh/article20e0f91d72b94af886cc03e8896da67e.html",
+      "verification": "institution_page_read",
+      "locator": "历史沿革；坐标文本异常",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S15",
+      "title": "UNESCO登封分项坐标",
+      "url": "https://whc.unesco.org/en/list/1305/maps/",
+      "verification": "institution_metadata_read",
+      "locator": "1305-008 Observatory；比较1305-001",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S16",
+      "title": "天文遗产门户登封观星台",
+      "url": "https://web.astronomicalheritage.net/index.php/show-entity?identity=17&idsubentity=1",
+      "verification": "institution_page_read_coordinate_conflict",
+      "locator": "Location / Brief inventory",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S17",
+      "title": "周髀算经",
+      "url": "https://zh.wikisource.org/zh-hant/周髀算經",
+      "verification": "transcription_read",
+      "locator": "八尺与夏至日晷段落",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S18",
+      "title": "香港天文台二十四节气",
+      "url": "https://www.hko.gov.hk/sc/gts/time/24solarterms.htm",
+      "verification": "institution_page_read",
+      "locator": "黄经表",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S19",
+      "title": "USNO太阳近似坐标",
+      "url": "https://aa.usno.navy.mil/faq/sun_approx",
+      "verification": "institution_page_read",
+      "locator": "赤纬及黄赤交角关系",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    },
+    {
+      "id": "S20",
+      "title": "国立天文台圭表与昼夜说明",
+      "url": "https://eco2.mtk.nao.ac.jp/koyomi/wiki/B7BDC9BDB5B7.html",
+      "verification": "institution_page_read",
+      "locator": "另见 https://www.nao.ac.jp/faq/a0303.html",
+      "accessedAt": "2026-10-29",
+      "printedEdition": null,
+      "folioOrPrintedPage": null,
+      "independentReviewer": null
+    }
+  ],
+  "termSample": {
+    "id": "mangzhong",
+    "name": "芒种",
+    "longitude": 75,
+    "longitudeSourceId": "S18",
+    "yearSpecificDate": null,
+    "detailMarkdown": "02_芒种内容样本包.md",
+    "hou": [
+      {
+        "order": 1,
+        "nameOriginal": "螳螂生",
+        "sourceIds": [
+          "S04"
+        ],
+        "modernSpeciesId": null
+      },
+      {
+        "order": 2,
+        "nameOriginal": "鵙始鳴",
+        "sourceIds": [
+          "S04"
+        ],
+        "modernSpeciesId": null
+      },
+      {
+        "order": 3,
+        "nameOriginal": "反舌無聲",
+        "sourceIds": [
+          "S04"
+        ],
+        "modernSpeciesId": null
+      }
+    ],
+    "cards": [
+      {
+        "id": "farm-hemp-north-candidate",
+        "sourceIds": [
+          "S06"
+        ],
+        "locator": "卷第二·种麻第八",
+        "regionGroupCandidate": "north",
+        "preciseRegion": null,
+        "timeBasis": "夏至前十日",
+        "termAssociation": "邻近芒种时段的编辑关联，非原文明记芒种",
+        "isFinal": false
+      },
+      {
+        "id": "farm-rice-transplant-candidate",
+        "sourceIds": [
+          "S07",
+          "S09"
+        ],
+        "locator": "卷上·五月·插稻秧",
+        "regionGroupCandidate": "south",
+        "preciseRegion": null,
+        "timeBasis": "芒种前后",
+        "termAssociation": "原文直接出现节气，起止日未定",
+        "isFinal": false
+      }
+    ],
+    "proverb": null,
+    "historicalShadowValue": null
+  },
+  "cropTrack": {
+    "id": "crop-wheat-nscy-01",
+    "title": "农桑衣食撮要中的麦作过程",
+    "regionGroup": null,
+    "preciseRegion": null,
+    "variety": null,
+    "sourcePeriod": "元代农书条目；非某公历年的观测",
+    "notes": "部分条目合称麦/大小麦；不可冒充单一品种的专门历",
+    "events": [
+      {
+        "id": "W01",
+        "originalTime": "六月初旬",
+        "stage": "备田",
+        "summary": "趁清凉时段耕作",
+        "sourceIds": [
+          "S07"
+        ],
+        "locator": "六月·耕麦地",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": -1,
+        "termAnchor": null,
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "unmapped",
+        "verification": "transcription_read",
+        "isFinal": false
+      },
+      {
+        "id": "W02",
+        "originalTime": "七月间",
+        "stage": "培肥",
+        "summary": "翻压前期绿豆秧",
+        "sourceIds": [
+          "S07"
+        ],
+        "locator": "六月·耕麦地中的后续时间",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": -1,
+        "termAnchor": null,
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "unmapped",
+        "verification": "transcription_read",
+        "isFinal": false
+      },
+      {
+        "id": "W03",
+        "originalTime": "八月；白露节后",
+        "stage": "播种",
+        "summary": "按播期安排播种与培肥",
+        "sourceIds": [
+          "S08"
+        ],
+        "locator": "八月·种大小麦",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": -1,
+        "termAnchor": "bailu",
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "after_term_no_exact_end",
+        "verification": "transcription_read",
+        "isFinal": false
+      },
+      {
+        "id": "W04",
+        "originalTime": "十月",
+        "stage": "管理",
+        "summary": "清除麦田杂草",
+        "sourceIds": [
+          "S08"
+        ],
+        "locator": "十月·耘麦",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": -1,
+        "termAnchor": null,
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "unmapped",
+        "verification": "transcription_read",
+        "isFinal": false
+      },
+      {
+        "id": "W05",
+        "originalTime": "次年四月",
+        "stage": "防护",
+        "summary": "记录沙雾防护办法",
+        "sourceIds": [
+          "S07"
+        ],
+        "locator": "四月·防雾伤麦",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": 0,
+        "termAnchor": null,
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "unmapped",
+        "verification": "transcription_read",
+        "isFinal": false
+      },
+      {
+        "id": "W06",
+        "originalTime": "次年五月；麦半黄时",
+        "stage": "收获",
+        "summary": "择晴及时收割",
+        "sourceIds": [
+          "S07"
+        ],
+        "locator": "五月·收小麦",
+        "calendar": "historical_month_or_term",
+        "displayCycleYearOffset": 0,
+        "termAnchor": null,
+        "termRange": null,
+        "preciseDate": null,
+        "timeMapping": "unmapped",
+        "verification": "transcription_read",
+        "isFinal": false
+      }
+    ]
+  },
+  "image": {
+    "id": "img-shoushi-commons-01",
+    "path": "assets/shoushi-original-commons.png",
+    "width": 1336,
+    "height": 964,
+    "sourceId": "S01",
+    "sha256": "52ea70e8578e5b5ae97c0b72a033f950869416cfb6047a9e5182a40fbc523f38",
+    "platformEditionLabel": "四库全书本",
+    "exactEdition": null,
+    "folio": null,
+    "annotations": [
+      {
+        "id": "G01",
+        "label": "题名",
+        "box": [
+          0.92,
+          0.05,
+          0.05,
+          0.35
+        ],
+        "basis": "图像直接查看",
+        "textTranscriptionComplete": false
+      },
+      {
+        "id": "G02",
+        "label": "中心星点与连线",
+        "box": [
+          0.45,
+          0.43,
+          0.1,
+          0.15
+        ],
+        "basis": "图像与S02文字对照，具体星名待核读",
+        "textTranscriptionComplete": false
+      },
+      {
+        "id": "G03",
+        "label": "中部时序层",
+        "box": [
+          0.33,
+          0.27,
+          0.34,
+          0.46
+        ],
+        "basis": "结构可见，各细环含义待核读",
+        "textTranscriptionComplete": false
+      },
+      {
+        "id": "G04",
+        "label": "外围图文区",
+        "box": [
+          0.19,
+          0.5,
+          0.22,
+          0.25
+        ],
+        "basis": "图像分区与S02文字对照",
+        "textTranscriptionComplete": false
+      }
+    ]
+  },
+  "modelProposal": {
+    "appliedToWebsite": false,
+    "locationLabel": "现代观星台登记分项附近的近似位置",
+    "locationSourceId": "S15",
+    "componentId": "1305-008",
+    "latitude": 34.39971388888889,
+    "longitude": 113.14124444444445,
+    "heightChi": 8,
+    "obliquityDegrees": 23.44,
+    "isHistoricalReconstruction": false,
+    "coordinateConflictSourceId": "S16",
+    "referenceDocument": "05_阳城与模型参数建议.md",
+    "nodeResults": [
+      {
+        "term": "chunfen",
+        "longitude": 0,
+        "altitude": 55.6002861111,
+        "shadowChi": 5.477655645,
+        "daylightHours": 12
+      },
+      {
+        "term": "mangzhong",
+        "longitude": 75,
+        "altitude": 78.1964923483,
+        "shadowChi": 1.6717982169,
+        "daylightHours": 14.2075500436
+      },
+      {
+        "term": "xiazhi",
+        "longitude": 90,
+        "altitude": 79.0402861111,
+        "shadowChi": 1.5492057342,
+        "daylightHours": 14.3026021723
+      },
+      {
+        "term": "qiufen",
+        "longitude": 180,
+        "altitude": 55.6002861111,
+        "shadowChi": 5.477655645,
+        "daylightHours": 12
+      },
+      {
+        "term": "dongzhi",
+        "longitude": 270,
+        "altitude": 32.1602861111,
+        "shadowChi": 12.7233338976,
+        "daylightHours": 9.6973978277
+      }
+    ]
+  }
+}
