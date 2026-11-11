@@ -1,13 +1,14 @@
 import { computed, reactive, readonly } from 'vue';
 import { TERMS, getTerm } from '../data/terms.js';
-import { normalize, nearestTurn, termIndex, houIndex } from '../core/angle.js';
+import { normalize, nearestTurn } from '../core/angle.js';
 import { createMotion, advanceMotion, dragMotion, releaseMotion, springMotion, finishMotion } from '../core/physics.js';
 import { initializeLoop, subscribeFrame, motionPreferences } from '../core/loop.js';
+import { nearestTermIndex } from '../core/wheelGeometry.js';
 
 const motion = createMotion();
 const state = reactive({ yearAngle: 0, phase: 'idle', velocity: 0, target: 0, dragSource: null, settled: 0,
   focus: null, relatedTermIds: [], panelOpen: false, debug: false, atmosphere: true,
-  particles: { rain: 0, snow: 0, leaf: 0 }, quality: 1 });
+  particles: { rain: 0, snow: 0, leaf: 0 }, quality: 1, houFocus:null });
 let initialized = false;
 let unsubscribeFrame;
 function sync() {
@@ -28,13 +29,18 @@ function initialize(id) {
     if (motion.phase !== 'drag') sync();
   });
 }
-function clearFocus() { state.focus = null; state.relatedTermIds = []; }
+function clearFocus() { state.focus = null; state.relatedTermIds = []; state.houFocus=null; }
 function goToAngle(angle, { clear = true } = {}) {
   if (clear) clearFocus();
   state.dragSource = null;
   springMotion(motion, nearestTurn(motion.angle, angle), motionPreferences.reduced.value); sync();
 }
 function selectTerm(id, options) { goToAngle(getTerm(id).index * 15, options); }
+function selectHou(id,order) {
+  const term=getTerm(id);
+  selectTerm(term.id);
+  state.houFocus={termId:term.id,order:Math.max(0,Math.min(2,order))};
+}
 function beginDrag(source) {
   clearFocus(); state.dragSource = source;
   dragMotion(motion, motion.angle); sync();
@@ -49,15 +55,14 @@ function stop() {
   dragMotion(motion, motion.angle); motion.phase = 'idle'; state.dragSource = null; sync();
 }
 const longitude = computed(() => normalize(state.yearAngle + 315));
-// 接近落点时以目标读候，避免欠阻尼回弹在边界两侧造成文字闪换。
-const readingAngle = computed(() => state.phase === 'spring' && Math.abs(state.yearAngle-state.target) < 2 ? state.target : state.yearAngle);
-const currentTerm = computed(() => TERMS[termIndex(readingAngle.value)]);
-const currentHou = computed(() => currentTerm.value.hou[houIndex(readingAngle.value)]);
+// 主针选择最近的节气中心；三候是该节气内的内容焦点，不另转主盘。
+const currentTerm = computed(() => TERMS[nearestTermIndex(state.yearAngle)]);
+const currentHou = computed(() => currentTerm.value.hou[state.houFocus?.termId===currentTerm.value.id?state.houFocus.order:0]);
 export const year = {
   state: readonly(state), longitude, term: currentTerm, hou: currentHou,
   normalized: computed(() => normalize(state.yearAngle)),
   moving: computed(() => state.phase !== 'idle'),
-  initialize, selectTerm, goToAngle, beginDrag, dragTo, release, step, stop, clearFocus,
+  initialize, selectTerm, selectHou, goToAngle, beginDrag, dragTo, release, step, stop, clearFocus,
   setPanel: value => { state.panelOpen = value; },
   setDebug: value => { state.debug = value; },
   setAtmosphere: value => { state.atmosphere = value; },

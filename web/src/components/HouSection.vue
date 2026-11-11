@@ -1,19 +1,20 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { year } from '../state/year.js';
 import { TERMS } from '../data/terms.js';
 import { ANIMATED_HOU, HOU_CAPTIONS } from '../data/hou.js';
 import HouIllustration from './HouIllustration.vue';
 const gallery=ref(false);
+const headingId = `hou-heading-${useId()}`;
 const items=computed(()=>year.term.value.hou);
 const animated=TERMS.flatMap(term=>term.hou.filter(hou=>ANIMATED_HOU[hou.id]).map(hou=>({...hou,term})));
 const currentKind=computed(()=>ANIMATED_HOU[year.hou.value?.id]);
-function choose(term,hou){year.goToAngle(term.index*15+hou.order*5);}
+function choose(term,hou){year.selectHou(term.id,hou.order);}
 </script>
 <template>
-  <section class="hou-section">
-    <div class="hou-section-heading"><div><p class="eyebrow">一气三候 · 观物知时</p><h2>把时序，读成万物。</h2></div><button class="text-link" :aria-expanded="gallery" @click="gallery=!gallery">{{gallery?'收起':'浏览'}}十幅动态候象 {{gallery?'−':'+'}}</button></div>
-    <div class="hou-cards"><button v-for="hou in items" :key="hou.id" class="hou-card" :class="{active:year.hou.value?.id===hou.id}" :aria-pressed="year.hou.value?.id===hou.id" @click="choose(year.term.value,hou)"><div class="hou-card-top"><small>{{['初候','二候','三候'][hou.order]}}</small><span>{{ANIMATED_HOU[hou.id]?'动态线描':'静态线描'}}</span></div><HouIllustration :hou="hou" :season="year.term.value.season" :playing="year.hou.value?.id===hou.id&&!year.moving.value"/><div class="hou-card-bottom"><strong>{{hou.name}}</strong><span>{{year.hou.value?.id===hou.id?'正在读候':'移到此候 →'}}</span></div></button></div>
+  <section class="hou-section" :aria-labelledby="headingId">
+    <div class="hou-section-heading"><div><p class="eyebrow">一气三候 · 观物知时</p><h2 :id="headingId">把时序，读成万物。</h2></div><button class="text-link" :aria-expanded="gallery" @click="gallery=!gallery">{{gallery?'收起':'浏览'}}十幅动态候象 {{gallery?'−':'+'}}</button></div>
+    <div class="hou-cards"><button v-for="hou in items" :key="hou.id" class="hou-card" :class="{active:year.hou.value?.id===hou.id}" :aria-pressed="year.hou.value?.id===hou.id" @click="choose(year.term.value,hou)"><div class="hou-card-top"><small>{{['初候','二候','三候'][hou.order]}}</small><span>{{ANIMATED_HOU[hou.id]?'动态线描':'静态线描'}}</span></div><HouIllustration :hou="hou" :season="year.term.value.season" :playing="year.hou.value?.id===hou.id&&!year.moving.value"/><div class="hou-card-bottom"><strong>{{hou.name}}</strong><span>{{year.hou.value?.id===hou.id?'正在读候':'查看此候 →'}}</span></div></button></div>
     <p class="hou-footnote"><span>{{currentKind ? HOU_CAPTIONS[currentKind] : '以线描示意候象，点击三候卡片逐一观看。'}}</span><small>候名据团队初稿，底本待校 · 插画为艺术示意，非现代物种图鉴</small></p>
     <Transition name="hou-gallery"><div v-if="gallery" class="hou-gallery"><button v-for="item in animated" :key="item.id" @click="choose(item.term,item)"><span>{{item.name}}</span><small>{{item.term.name}} · {{['初候','二候','三候'][item.order]}}</small></button></div></Transition>
   </section>

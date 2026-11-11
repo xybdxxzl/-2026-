@@ -102,7 +102,7 @@ const activeNote = computed(() => notes.find(item => item.id === selectedNote.va
 </template>
 
 <style scoped>
-.ancient-view { color: var(--ink, #253d38); padding: 10px 0 30px; font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif; }
+.ancient-view { color: var(--ink, #253d38); padding: 30px 0; font-family: var(--font-body); }
 .ancient-view, .ancient-view * { box-sizing: border-box; }
 button { font: inherit; }
 button:focus-visible { outline: 2px solid var(--accent, #ae5544); outline-offset: 4px; }

@@ -138,7 +138,7 @@ function moveTerm(offset) {
 </template>
 
 <style scoped>
-.farm-view { --north: #987957; --south: #4e7d72; color: var(--ink, #253d38); padding: 10px 0 30px; font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif; }
+.farm-view { --north: #795e3e; --south: #3d6553; color: var(--ink, #253d38); padding: 30px 0; font-family: var(--font-body); }
 .farm-view, .farm-view * { box-sizing: border-box; }
 button { font: inherit; }
 button:focus-visible, .timeline-scroll:focus-visible { outline: 2px solid var(--accent, #ae5544); outline-offset: 4px; }

@@ -1,9 +1,7 @@
 import { normalize } from './angle.js';
+import { SEASON_ANCHORS } from '../data/seasonPalette.js';
 
-const anchors = [
-  ['#e6efdd','#cfe0c8'],['#dcebe0','#bbd8c9'],['#e4ebcb','#c9ddb0'],['#f6e7b8','#e7c58b'],
-  ['#f0deb5','#d8b27c'],['#ebd3a8','#c99a64'],['#dce0e2','#b8c2c8'],['#e8ebee','#c5ced6'],
-];
+const anchors = SEASON_ANCHORS;
 // 艺术化季相强度，不是历史气象记录或天气预报。
 const weather = [
   [0,0,.15,0,0],[.55,0,0,0,0],[.35,0,0,0,.7],[.1,0,0,0,0],[.4,0,0,0,0],[.6,0,0,0,0],
