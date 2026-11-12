@@ -70,6 +70,18 @@ test('四季色带边界与六个节气外侧边界一致，霜降和立冬之�
   assert.equal(seasonRingLayout(2).end,termRingLayout(17).end);
   assert.equal(seasonRingLayout(3).start,termRingLayout(18).start);
 });
+test('转动时指针经过的候区决定高亮，包括跨年边界',()=>{
+  year.beginDrag('dial');
+  for(const term of TERMS)for(const hou of term.hou){
+    const {start,angle,end}=houRingLayout(term.index,hou.order,hou.name);
+    for(const turn of [-360,0,360])for(const position of [start,angle,end-.01]){
+      year.dragTo(position+turn);
+      assert.equal(year.term.value.id,term.id);
+      assert.equal(year.hou.value.id,hou.id);
+    }
+  }
+  year.stop();
+});
 test('切换三候只选择内容，主盘始终对准所属节气中心',()=>{
   for(const term of TERMS)for(const hou of term.hou){
     year.beginDrag('dial');year.dragTo(term.index*15);
@@ -77,6 +89,9 @@ test('切换三候只选择内容，主盘始终对准所属节气中心',()=>{
     assert.equal(year.state.target,term.index*15);
     assert.equal(year.term.value.id,term.id);assert.equal(year.hou.value.id,hou.id);
   }
-  year.beginDrag('dial');year.dragTo(8);assert.equal(year.term.value.id,'yushui');
+  year.beginDrag('dial');year.dragTo(20);
+  year.selectHou('yushui',0);
+  assert.equal(year.state.target,15);
+  assert.equal(year.hou.value.id,'yushui-3');
   year.stop();
 });

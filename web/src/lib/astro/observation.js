@@ -1,22 +1,25 @@
 import { Temporal } from '@js-temporal/polyfill';
 import {
-  Body, Observer, Equator, Horizon, HourAngle, SearchHourAngle, SearchSunLongitude, SunPosition,
+  Body, Observer, Equator, Horizon, SearchHourAngle, SearchSunLongitude, SiderealTime, SunPosition,
 } from 'astronomy-engine';
 import { TERMS } from '../../data/terms.js';
 import { termReference } from '../../data/hkoSolarTerms.js';
 import { dialNeedle, projectShadow, sunDirection, radians } from './geometry.js';
+import { polarShadow } from './sundialGeometry.js';
 
 export const MIN_DATE = '2025-01-01';
 export const MAX_DATE = '2029-02-10';
 export const MIN_CYCLE = 2025;
 export const MAX_CYCLE = 2028;
 export const OBSERVERS = Object.freeze([
+  { id: 'yangcheng', name: '阳城 · 登封告成', latitude: 34.40, longitude: 113.10, zone: 'Asia/Shanghai' },
   { id: 'beijing', name: '北京', latitude: 39.90, longitude: 116.41, zone: 'Asia/Shanghai' },
   { id: 'zhengzhou', name: '郑州', latitude: 34.75, longitude: 113.63, zone: 'Asia/Shanghai' },
   { id: 'hangzhou', name: '杭州', latitude: 30.27, longitude: 120.16, zone: 'Asia/Shanghai' },
   { id: 'guangzhou', name: '广州', latitude: 23.13, longitude: 113.26, zone: 'Asia/Shanghai' },
   { id: 'urumqi', name: '乌鲁木齐', latitude: 43.83, longitude: 87.62, zone: 'Asia/Shanghai' },
   { id: 'sydney', name: '悉尼', latitude: -33.87, longitude: 151.21, zone: 'Australia/Sydney' },
+  { id: 'equator', name: '赤道参考点', latitude: 0, longitude: 0, zone: 'UTC' },
   { id: 'tromso', name: '特罗姆瑟', latitude: 69.65, longitude: 18.96, zone: 'Europe/Oslo' },
 ].map(place => Object.freeze({ ...place, elevation: 0 })));
 
@@ -32,7 +35,7 @@ export function formatLocal(ms, zone) {
     timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
     minute: '2-digit', hourCycle: 'h23',
   }));
-  return formatters.get(zone).format(ms);
+  return formatters.get(zone).format(Math.round(ms / 60_000) * 60_000);
 }
 export function assertDate(date) {
   if (date < MIN_DATE || date > MAX_DATE) throw new RangeError(`日期范围为 ${MIN_DATE} 至 ${MAX_DATE}`);
@@ -76,19 +79,29 @@ export function solarAt(ms, place) {
   const time = new Date(ms), observer = engineObserver(place);
   const eq = Equator(Body.Sun, time, observer, true, true);
   const { altitude, azimuth } = Horizon(time, observer, eq.ra, eq.dec);
-  const solarTime = mod24(HourAngle(Body.Sun, time, observer) + 12);
+  const solarTime = mod24(SiderealTime(time) + place.longitude / 15 - eq.ra + 12);
   const direction = sunDirection(altitude, azimuth);
   const needle = dialNeedle(place.latitude);
-  return { altitude, azimuth, solarTime, direction, needle, shadow: projectShadow(needle, direction) };
+  return { ms, altitude, azimuth, solarTime, declination:eq.dec, hourAngle:(solarTime - 12) * 15,
+    direction, needle, shadow:projectShadow(needle, direction),
+    polar:polarShadow(place.latitude,eq.dec,solarTime) };
 }
 export const longitudeAt = ms => SunPosition(new Date(ms)).elon;
 
-export function atSolarTime(date, hour, place) {
+export function atSolarTime(date, hour, place, nearMs) {
   const [start, end] = dayBounds(date, place.zone);
   const observer = engineObserver(place);
-  const event = SearchHourAngle(Body.Sun, observer, mod24(hour - 12), new Date(start - 1000));
-  const ms = event.time.date.getTime();
-  return ms >= start && ms < end ? ms : null;
+  const hourAngle = mod24(hour - 12);
+  const search = (from, direction) => SearchHourAngle(Body.Sun, observer, hourAngle,
+    new Date(from), direction).time.date.getTime();
+  let first = search(start - 1000, 1);
+  if (first < start) first = search(start + 1000, 1);
+  if (first < start || first >= end) return null;
+  if (nearMs == null || nearMs <= first) return first;
+
+  // A long civil day can contain two instants at the same apparent solar time.
+  const last = search(end, -1);
+  return last >= start && last < end && Math.abs(last - nearMs) < Math.abs(first - nearMs) ? last : first;
 }
 
 const januaryOrder = [...TERMS.slice(-2), ...TERMS.slice(0, -2)];

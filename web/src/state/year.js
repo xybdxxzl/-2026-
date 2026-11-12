@@ -3,7 +3,7 @@ import { TERMS, getTerm } from '../data/terms.js';
 import { normalize, nearestTurn } from '../core/angle.js';
 import { createMotion, advanceMotion, dragMotion, releaseMotion, springMotion, finishMotion } from '../core/physics.js';
 import { initializeLoop, subscribeFrame, motionPreferences } from '../core/loop.js';
-import { nearestTermIndex } from '../core/wheelGeometry.js';
+import { nearestHouOrder, nearestTermIndex } from '../core/wheelGeometry.js';
 
 const motion = createMotion();
 const state = reactive({ yearAngle: 0, phase: 'idle', velocity: 0, target: 0, dragSource: null, settled: 0,
@@ -55,11 +55,16 @@ function stop() {
   dragMotion(motion, motion.angle); motion.phase = 'idle'; state.dragSource = null; sync();
 }
 const longitude = computed(() => normalize(state.yearAngle + 315));
-// 主针选择最近的节气中心；三候是该节气内的内容焦点，不另转主盘。
 const currentTerm = computed(() => TERMS[nearestTermIndex(state.yearAngle)]);
-const currentHou = computed(() => currentTerm.value.hou[state.houFocus?.termId===currentTerm.value.id?state.houFocus.order:0]);
+const focusedHou = computed(() => {
+  const term = currentTerm.value;
+  const focus = state.houFocus;
+  if (focus?.termId !== term.id || state.yearAngle !== state.target || state.velocity !== 0) return null;
+  return term.hou[focus.order];
+});
+const currentHou = computed(() => focusedHou.value ?? currentTerm.value.hou[nearestHouOrder(state.yearAngle)]);
 export const year = {
-  state: readonly(state), longitude, term: currentTerm, hou: currentHou,
+  state: readonly(state), longitude, term: currentTerm, hou: currentHou, focusedHou,
   normalized: computed(() => normalize(state.yearAngle)),
   moving: computed(() => state.phase !== 'idle'),
   initialize, selectTerm, selectHou, goToAngle, beginDrag, dragTo, release, step, stop, clearFocus,

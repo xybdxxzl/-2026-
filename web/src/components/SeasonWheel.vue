@@ -23,6 +23,12 @@ const houLabels=computed(()=>props.terms.flatMap(term=>term.hou.map(hou=>({
   ...hou,term,...houRingLayout(term.index,hou.order,hou.name),
 }))));
 const visibleHouLabels=computed(()=>houLabels.value.filter(hou=>hou.term.index===selectedIndex.value));
+const houPointerRotation=computed(()=>{
+  const focused=year.focusedHou.value;
+  if(!focused)return 0;
+  const label=houLabels.value.find(hou=>hou.id===focused.id);
+  return label?shortestDelta(year.state.yearAngle,label.angle):0;
+});
 const tooltip=computed(()=>{
   if(!hovered.value)return null;
   if(hovered.value.kind==='hou'){
@@ -183,7 +189,12 @@ onDeactivated(()=>cancelGesture());onBeforeUnmount(()=>cancelGesture());
         <text class="center-caption" x="410" y="553">午正 · 日高 {{currentModel.altitude.toFixed(1)}}°</text>
         <g class="center-link"><path d="M375 574h70"/><text x="410" y="583">观天测影 ↗</text></g>
       </g>
-      <g class="selection-pointer" aria-hidden="true"><path d="M404 3 H416 V19 L410 30 L404 19 Z"/><path class="pointer-read-line" d="M410 59 V63 M410 82 V86 M410 198 V211"/></g>
+      <g class="selection-pointer" aria-hidden="true">
+        <path d="M404 3 H416 V19 L410 30 L404 19 Z"/>
+        <path class="pointer-read-line" d="M410 59 V63"/>
+        <path class="pointer-read-line hou-pointer" d="M410 82 V86 M410 198 V211"
+          :transform="`rotate(${houPointerRotation} ${WHEEL.center} ${WHEEL.center})`"/>
+      </g>
     </svg>
 
     <Transition name="tooltip"><div v-if="tooltip&&!year.moving.value" class="wheel-tooltip" role="tooltip">{{tooltip}}</div></Transition>

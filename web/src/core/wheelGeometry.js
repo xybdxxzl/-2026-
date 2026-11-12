@@ -1,6 +1,7 @@
 import { solarModel } from '../lib/astronomy.js';
 import { normalize } from './angle.js';
 
+const HOU_SPAN = 5;
 export const WHEEL = Object.freeze({
   size:820, center:410, rim:398,
   termInner:350, termOuter:388, termLabel:369,
@@ -24,11 +25,14 @@ export function termRingLayout(index) {
     path:annularPath(WHEEL.termInner,WHEEL.termOuter,angle-7.5+.12,angle+7.5-.12)};
 }
 export function houRingLayout(termIndex,order,name) {
-  const angle=termIndex*15+(order-1)*5;
-  return {angle,start:angle-2.5,end:angle+2.5,position:polarPoint(WHEEL.houLabel,angle),
-    path:annularPath(WHEEL.houInner,WHEEL.houOuter,angle-2.5+.08,angle+2.5-.08),...houLetterLayout(name)};
+  const angle=termIndex*15+(order-1)*HOU_SPAN;
+  const start=angle-HOU_SPAN/2,end=angle+HOU_SPAN/2;
+  return {angle,start,end,position:polarPoint(WHEEL.houLabel,angle),
+    path:annularPath(WHEEL.houInner,WHEEL.houOuter,start+.08,end-.08),...houLetterLayout(name)};
 }
 export const nearestTermIndex=angle=>Math.round(normalize(angle)/15)%24;
+// 0° 对准立春二候，所以从初候计数时偏移一格。
+export const nearestHouOrder=angle=>(Math.round(normalize(angle)/HOU_SPAN)+1)%3;
 export const seasonRingLayout=index=>({start:index*90-7.5,end:index*90+82.5,middle:index*90+37.5});
 export function shadowRadius(chi) {
   return WHEEL.shadowInner+chi/WHEEL.shadowMaxChi*(WHEEL.shadowOuter-WHEEL.shadowInner);
