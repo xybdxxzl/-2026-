@@ -3,9 +3,9 @@ import { ShaderChunk } from 'three';
 // Directional light, so the depth difference is a world-space travel distance.
 export const solarShadowVolume = Object.freeze({ halfWidth: 9.5, near: 11, far: 280, lightDistance: 32 });
 
-const basicShadow = '#else // SHADOWMAP_TYPE_BASIC';
 const stockShadows = ShaderChunk.shadowmap_pars_fragment;
-const basicStart = stockShadows.indexOf(basicShadow);
+// The published Three.js build strips comments from its GLSL chunks.
+const basicStart = stockShadows.search(/#else[^\n]*\n\s*float\s+getShadow\s*\(\s*sampler2D\s+shadowMap\b/);
 const basicEnd = stockShadows.indexOf('#if NUM_SUN_LIGHT_SHADOWS > 0', basicStart);
 
 function directionalShadowChunk(blockerSamples, filterSamples) {

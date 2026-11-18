@@ -5,7 +5,7 @@ import {
 import { TERMS } from '../../data/terms.js';
 import { termReference } from '../../data/hkoSolarTerms.js';
 import { dialNeedle, projectShadow, sunDirection, radians } from './geometry.js';
-import { polarShadow } from './sundialGeometry.js';
+import { polarShadow, solarHourAngle } from './sundialGeometry.js';
 
 export const MIN_DATE = '2025-01-01';
 export const MAX_DATE = '2029-02-10';
@@ -82,7 +82,7 @@ export function solarAt(ms, place) {
   const solarTime = mod24(SiderealTime(time) + place.longitude / 15 - eq.ra + 12);
   const direction = sunDirection(altitude, azimuth);
   const needle = dialNeedle(place.latitude);
-  return { ms, altitude, azimuth, solarTime, declination:eq.dec, hourAngle:(solarTime - 12) * 15,
+  return { ms, altitude, azimuth, solarTime, declination:eq.dec, hourAngle:solarHourAngle(solarTime),
     direction, needle, shadow:projectShadow(needle, direction),
     polar:polarShadow(place.latitude,eq.dec,solarTime) };
 }

@@ -1,13 +1,14 @@
 import * as THREE from 'three';
+import { palette } from './sundialTheme.js';
 
 const hourMs = 3_600_000;
 const radialSegments = 8;
 
-function arcGeometry(samples, toWorld, origin) {
+function arcGeometry(samples, toWorld, origin, radius) {
   const curve = new THREE.CatmullRomCurve3(samples.map(({ point }) => toWorld(point)));
   const segments = (samples.length - 1) * 3;
   curve.arcLengthDivisions = Math.max(200, segments);
-  const geometry = new THREE.TubeGeometry(curve, segments, .038, radialSegments, false);
+  const geometry = new THREE.TubeGeometry(curve, segments, radius, radialSegments, false);
   const hours = new Float32Array(geometry.attributes.position.count);
 
   for (let ring = 0; ring <= segments; ring++) {
@@ -22,19 +23,23 @@ function arcGeometry(samples, toWorld, origin) {
   return geometry;
 }
 
-export function createSolarPath() {
+export function createSolarPath({
+  travelled = palette.gold, ahead = palette.bronze, crossing = palette.bronzeDark, tubeRadius = .038,
+} = {}) {
   const group = new THREE.Group();
   const arcs = new THREE.Group();
   const crossings = new THREE.Group();
   group.add(arcs, crossings);
   const now = { value: 0 };
+  const opacity = { value: 1 };
   let origin = 0;
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
       now,
-      travelled: { value: new THREE.Color('#f7c786') },
-      ahead: { value: new THREE.Color('#c8a774') },
+      opacity,
+      travelled: { value: new THREE.Color(travelled) },
+      ahead: { value: new THREE.Color(ahead) },
     },
     transparent: true,
     depthWrite: false,
@@ -53,6 +58,7 @@ export function createSolarPath() {
     `,
     fragmentShader: `
       uniform float now;
+      uniform float opacity;
       uniform vec3 travelled;
       uniform vec3 ahead;
       varying float hour;
@@ -62,7 +68,7 @@ export function createSolarPath() {
         float upcoming = smoothstep(-0.025, 0.025, hour - now);
         float edge = max(dot(normalize(viewNormal), normalize(viewPosition)), 0.0);
         float coverage = smoothstep(0.05, 0.84, edge);
-        float alpha = mix(0.98, 0.53, upcoming) * coverage;
+        float alpha = mix(0.98, 0.53, upcoming) * coverage * opacity;
         gl_FragColor = vec4(mix(travelled, ahead, upcoming), alpha);
         #include <colorspace_fragment>
       }
@@ -70,7 +76,7 @@ export function createSolarPath() {
   });
 
   const markerGeometry = new THREE.SphereGeometry(.09, 16, 10);
-  const markerMaterial = new THREE.MeshBasicMaterial({ color:'#edc489', toneMapped:false });
+  const markerMaterial = new THREE.MeshBasicMaterial({ color:crossing, toneMapped:false });
 
   function update(runs, horizon, toWorld) {
     for (const mesh of arcs.children) mesh.geometry.dispose();
@@ -79,7 +85,7 @@ export function createSolarPath() {
     origin = runs[0]?.[0]?.ms ?? 0;
     for (const samples of runs) {
       if (samples.length < 2) continue;
-      const arc = new THREE.Mesh(arcGeometry(samples, toWorld, origin), material);
+      const arc = new THREE.Mesh(arcGeometry(samples, toWorld, origin, tubeRadius), material);
       arc.renderOrder = 1;
       arcs.add(arc);
     }
@@ -94,6 +100,16 @@ export function createSolarPath() {
     group,
     update,
     setTime(ms) { now.value = (ms - origin) / hourMs; },
+    setOpacity(value) {
+      opacity.value = value;
+      markerMaterial.opacity = value;
+      const translucent = value < 1;
+      if (markerMaterial.transparent !== translucent) {
+        markerMaterial.transparent = translucent;
+        markerMaterial.needsUpdate = true;
+      }
+      markerMaterial.depthWrite = !translucent;
+    },
     dispose() {
       for (const mesh of arcs.children) mesh.geometry.dispose();
       markerGeometry.dispose();

@@ -40,17 +40,17 @@ defineProps({
   border: 0;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg,#f7c786 50%,#79684e 50%);
+  background: linear-gradient(90deg,var(--dial-gold) 50%,var(--dial-bronze) 50%);
 }
 .legend .sun-ray {
-  border-color: #ffe2a2;
+  border-color: var(--dial-bronze);
   border-top-style: dashed;
 }
 .legend .path-shadow {
-  border-color: #cd8d79;
+  border-color: var(--dial-cinnabar);
 }
 .legend .shadow-now {
-  border-color: #c0b4a1;
+  border-color: var(--dial-shadow);
 }
 .shadow-now.with-marker::after {
   position: absolute;
@@ -58,9 +58,9 @@ defineProps({
   top: -4px;
   width: 5px;
   height: 5px;
-  border: 1px solid #ffe9bc;
+  border: 1px solid var(--dial-paper);
   border-radius: 50%;
-  background: #b8513c;
+  background: var(--dial-cinnabar);
   content: '';
 }
 </style>

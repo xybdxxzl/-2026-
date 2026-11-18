@@ -6,6 +6,7 @@ const EPSILON = 1e-8;
 
 export const radians = degrees => degrees * Math.PI / 180;
 export const degrees = radians => radians * 180 / Math.PI;
+export const solarHourAngle = solarTimeHours => 15 * (solarTimeHours - 12);
 const multiply = (vector, scalar) => vector.map(value => value * scalar);
 const add = (a, b) => a.map((value, index) => value + b[index]);
 export const dot = (a, b) => a.reduce((sum, value, index) => sum + value * b[index], 0);
@@ -46,7 +47,7 @@ export function projectTipToDial(tip, sun, normal = [0, 0, 1]) {
 }
 
 export function polarShadow(latitudeDeg, declinationDeg, solarTimeHours, radius = DIAL_RADIUS) {
-  const hourAngle = 15 * (solarTimeHours - 12);
+  const hourAngle = solarHourAngle(solarTimeHours);
   const { P, M, W } = polarBasis(latitudeDeg);
   const length = radius * STYLE_LENGTH_RATIO;
   const sun = solarVector(latitudeDeg, declinationDeg, hourAngle);
@@ -71,8 +72,16 @@ export function polarShadow(latitudeDeg, declinationDeg, solarTimeHours, radius 
   };
 }
 
-export function sunriseSunset(latitudeDeg, declinationDeg) {
-  const cosine = -Math.tan(radians(latitudeDeg)) * Math.tan(radians(declinationDeg));
+export function sunriseSunset(latitudeDeg, declinationDeg, horizonDeg = 0) {
+  const latitude = radians(latitudeDeg), declination = radians(declinationDeg);
+  const offset = Math.sin(latitude) * Math.sin(declination);
+  const amplitude = Math.cos(latitude) * Math.cos(declination);
+  const horizon = Math.sin(radians(horizonDeg));
+  if (amplitude < Number.EPSILON) {
+    const state = offset > horizon ? 'polar-day' : 'polar-night';
+    return { state, sunrise: null, sunset: null, hourAngle: null };
+  }
+  const cosine = (horizon - offset) / amplitude;
   if (cosine < -1) return { state: 'polar-day', sunrise: null, sunset: null, hourAngle: null };
   if (cosine > 1) return { state: 'polar-night', sunrise: null, sunset: null, hourAngle: null };
   const hourAngle = degrees(Math.acos(Math.max(-1, Math.min(1, cosine))));

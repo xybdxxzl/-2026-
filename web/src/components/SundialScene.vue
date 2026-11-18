@@ -3,20 +3,22 @@ import { onMounted, onActivated, onDeactivated, onBeforeUnmount, ref, watch } fr
 import { SundialScene as SundialRenderer } from '../scene/sundial/SundialScene.js';
 
 const props = defineProps({ solar:Object, latitude:Number, tracks:Object, layers:Object, preset:String, face:String,
-  reset:Number, touchActive:Boolean, low:Boolean, xray:Boolean, secondary:Object, showBoth:Boolean,
-  compare:Boolean, reducedMotion:Boolean, debug:Boolean });
-const emit = defineEmits(['unavailable','ready','view-change']);
+  instrumentKind:String, reset:Number, touchActive:Boolean, low:Boolean, xray:Boolean, secondary:Object, showBoth:Boolean,
+  compare:Boolean, solstices:Array, solsticeDriver:String, equinox:Boolean, longitude:Number, reducedMotion:Boolean, debug:Boolean });
+const emit = defineEmits(['unavailable','ready','view-change','face-visibility']);
 const host = ref(null), sunEdge = ref(null);
 let rig;
-const state = () => ({ solar:props.solar, latitude:props.latitude, tracks:props.tracks, layers:props.layers,
+const state = () => ({ instrumentKind:props.instrumentKind, solar:props.solar, latitude:props.latitude, tracks:props.tracks, layers:props.layers,
   preset:props.preset, face:props.face, low:props.low, xray:props.xray, secondary:props.secondary,
-  showBoth:props.showBoth, compare:props.compare, reducedMotion:props.reducedMotion, debug:props.debug });
+  showBoth:props.showBoth, compare:props.compare, solstices:props.solstices, solsticeDriver:props.solsticeDriver,
+  equinox:props.equinox, longitude:props.longitude, reducedMotion:props.reducedMotion, debug:props.debug });
 function init() {
   if (rig || !host.value) return;
   try {
     rig = new SundialRenderer(host.value, {
       onReady:() => emit('ready'), onUnavailable:() => emit('unavailable'),
       onView:(preset,face) => emit('view-change',{preset,face}), onSunEdge:value => { sunEdge.value=value; },
+      onFaceVisibility:value => emit('face-visibility',value),
     });
     rig.init(state());
   } catch (error) {
@@ -26,7 +28,8 @@ function init() {
 }
 function sync() { rig?.setState(state()); }
 function destroy() { rig?.dispose(); rig=null; sunEdge.value=null; }
-watch(() => [props.solar,props.latitude,props.tracks,props.xray,props.secondary,props.showBoth,props.compare,props.reducedMotion,props.debug],sync);
+watch(() => [props.instrumentKind,props.solar,props.latitude,props.tracks,props.xray,props.secondary,props.showBoth,props.compare,
+  props.solstices,props.solsticeDriver,props.equinox,props.longitude,props.reducedMotion,props.debug],sync);
 watch(() => props.layers,value => rig?.setLayers(value),{deep:true});
 watch(() => [props.preset,props.face,props.reset],() => rig?.setView(props.preset,props.face,!props.reducedMotion));
 watch(() => props.low,() => { destroy(); init(); });
@@ -35,7 +38,7 @@ onMounted(init); onActivated(init); onDeactivated(destroy); onBeforeUnmount(dest
 
 <template>
   <div ref="host" class="scene-host" :class="{'touch-active':touchActive}">
-    <div v-if="layers.sky && sunEdge && solar.altitude > 0" class="sun-label"
+    <div v-if="layers.sky && !solstices?.length && sunEdge && solar.altitude > 0" class="sun-label"
       :class="{ 'at-edge':!sunEdge.visible, 'near-bottom':sunEdge.visible && sunEdge.y>86 }"
       :style="{left:`clamp(46px, ${sunEdge.x}%, calc(100% - 46px))`,top:sunEdge.y+'%'}" aria-hidden="true">
       <svg v-if="!sunEdge.visible" viewBox="0 0 24 24" :style="{transform:'rotate('+sunEdge.angle+'deg)'}"><path d="M4 12h14m-5-5 5 5-5 5" /></svg>
@@ -57,8 +60,8 @@ onMounted(init); onActivated(init); onDeactivated(destroy); onBeforeUnmount(dest
   z-index: 1;
   padding: 2px 6px;
   border-radius: 4px;
-  background: #132922dc;
-  color: #ffe1a5;
+  background: var(--dial-bronzeDark);
+  color: var(--dial-paper);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -66,7 +69,7 @@ onMounted(init); onActivated(init); onDeactivated(destroy); onBeforeUnmount(dest
   pointer-events: none;
 }
 .sun-label.at-edge {
-  border: 1px solid #b89a65;
+  border: 1px solid var(--dial-gold);
   transform: translate(-50%, -50%);
 }
 .sun-label.near-bottom {
@@ -85,8 +88,8 @@ onMounted(init); onActivated(init); onDeactivated(destroy); onBeforeUnmount(dest
   bottom: 12px;
   padding: 3px 7px;
   border-radius: 4px;
-  background: #132922e8;
-  color: #e9deca;
+  background: var(--dial-bronzeDark);
+  color: var(--dial-paper);
   font-size: 11px;
   pointer-events: none;
 }

@@ -1,215 +1,139 @@
 import * as THREE from 'three';
-import { dialLocalPoint } from '../../lib/astro/sundialGeometry.js';
-import { SUNDIAL_COLORS as C } from './sundialTheme.js';
+import { dialLocalPoint, solarHourAngle } from '../../lib/astro/sundialGeometry.js';
+import { bowlEngravings, bowlUV } from '../../lib/astro/bowlSundial.js';
+import { branches, inscriptionFont, palette as p } from './sundialTheme.js';
+import { dialLayout } from './dialEngraving.js';
 
-const HOURS = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const widths = { branch:.009, hour:.0055, minor:.003 };
+
 function canvas(size) {
-  const element = document.createElement('canvas');
-  element.width = element.height = size;
-  return [element, element.getContext('2d')];
+  const el = document.createElement('canvas');
+  el.width = el.height = size;
+  return [el, el.getContext('2d')];
 }
-function texture(element, renderer, color = false) {
-  const result = new THREE.CanvasTexture(element);
+function texture(el, renderer, color=true) {
+  const result = new THREE.CanvasTexture(el);
   if (color) result.colorSpace = THREE.SRGBColorSpace;
   result.anisotropy = renderer.capabilities.getMaxAnisotropy();
   return result;
 }
-function stroke(context, color, width) {
-  context.strokeStyle = color;
-  context.lineWidth = width;
-  context.lineCap = 'round';
-  context.stroke();
+
+// Albedo maps multiply the material's marble pigment in linear light.
+const marble = new THREE.Color(p.marble);
+function marbleInk(pigment,ground=marble) {
+  const c = new THREE.Color(pigment);
+  return c.setRGB(c.r/ground.r,c.g/ground.g,c.b/ground.b).getStyle();
 }
-
-function lineAt(context, hour, from, to) {
-  const a = dialLocalPoint(from * 1024, 15 * (hour - 12));
-  const b = dialLocalPoint(to * 1024, 15 * (hour - 12));
-  context.beginPath();
-  context.moveTo(a[0], -a[1]);
-  context.lineTo(b[0], -b[1]);
+function sheet(size) {
+  const [el,ctx] = canvas(size);
+  ctx.fillStyle=marbleInk(p.marble); ctx.fillRect(0,0,size,size);
+  ctx.translate(size/2,size/2);ctx.scale(size/2,size/2);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineCap='round';ctx.lineJoin='round';
+  return [el,ctx];
 }
-
-function ring(context, radius, ink, width) {
-  context.beginPath();
-  context.arc(0, 0, radius * 1024, 0, Math.PI * 2);
-  stroke(context, ink, width);
+function path(ctx,points,type,color,compact) {
+  if (points.length<2) return;
+  ctx.strokeStyle=marbleInk(color);
+  ctx.lineWidth=widths[type]*(compact?1.20:1);
+  ctx.beginPath();ctx.moveTo(...points[0]);
+  for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);
+  ctx.stroke();
 }
-
-function dialBand(context, inner, outer, fill) {
-  context.beginPath();
-  context.arc(0, 0, outer * 1024, 0, Math.PI * 2);
-  context.arc(0, 0, inner * 1024, 0, Math.PI * 2, true);
-  context.fillStyle = fill;
-  context.fill('evenodd');
+function label(ctx,h,point,height,back=false,roll=0) {
+  ctx.save();ctx.translate(...point);
+  ctx.rotate(roll*Math.PI/180);
+  if(back)ctx.scale(-1,1);
+  // Set font in pixel space; sub-pixel CSS font sizes are rounded by some canvas engines.
+  ctx.scale(.001,.001);
+  ctx.font='600 '+Math.round(height*1000)+'px '+inscriptionFont;
+  ctx.lineWidth=9;ctx.strokeStyle=marbleInk(p.marble);ctx.strokeText(branches[h/2],0,0);
+  ctx.fillStyle=marbleInk(h===12?p.cinnabar:p.ink);ctx.fillText(branches[h/2],0,0);ctx.restore();
 }
+const dialXY=(r,h)=>{const [x,y]=dialLocalPoint(r,solarHourAngle(h));return [x,-y];};
 
-function mineralWash(context) {
-  const gradient = context.createRadialGradient(-260, -310, 95, 0, 0, 1080);
-  gradient.addColorStop(0, '#dad7b7');
-  gradient.addColorStop(.68, '#cac5a3');
-  gradient.addColorStop(1, '#afa283');
-  context.fillStyle = gradient;
-  context.fillRect(-1024, -1024, 2048, 2048);
-
-  let seed = 29137;
-  function random() {
-    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-    return seed / 4294967296;
-  }
-  for (let i = 0; i < 28; i++) {
-    const x = random() * 2000 - 1000, y = random() * 2000 - 1000, radius = 95 + random() * 260;
-    const stain = context.createRadialGradient(x, y, 0, x, y, radius);
-    stain.addColorStop(0, i % 2 ? '#f9ecc144' : '#59664a2a');
-    stain.addColorStop(1, i % 2 ? '#f9ecc100' : '#68755b00');
-    context.fillStyle = stain;
-    context.fillRect(x - radius, y - radius, 2 * radius, 2 * radius);
-  }
-  for (let i = 0; i < 10000; i++) {
-    context.fillStyle = i % 2 ? '#66634c25' : '#fffce545';
-    context.fillRect(random() * 2048 - 1024, random() * 2048 - 1024, 1 + random() * 3, 1 + random() * 2);
-  }
-}
-
-function dialGlyph(context, text, hour, radius, mirrored) {
-  const [x, y] = dialLocalPoint(radius * 1024, 15 * (hour - 12));
-  context.save();
-  context.translate(x, -y);
-  // The back is viewed through the same physical coordinates. Reverse only the writing.
-  if (mirrored) context.scale(-1, 1);
-  context.fillText(text, 0, 0);
-  context.restore();
-}
-
-export function createDialTextures(renderer, compact) {
-  const size = compact ? 1024 : 2048, result = {};
-  for (const back of [false, true]) {
-    const [colorCanvas, color] = canvas(size), [bumpCanvas, bump] = canvas(size);
-    for (const context of [color, bump]) {
-      context.translate(size / 2, size / 2);
-      context.scale(size / 2048, size / 2048);
+export function createDialTextures(renderer,compact) {
+  const faces={};
+  for(const name of ['front','back']) {
+    const [el,ctx]=sheet(compact?1024:2048);
+    ctx.lineCap='butt';
+    for(const {r,width} of dialLayout.rules){
+      ctx.lineWidth=width*(compact?1.25:1);ctx.strokeStyle=marbleInk(p.lightInk);
+      ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
     }
-    mineralWash(color);
-    dialBand(color, .625, .838, '#9d8a5b25');
-    dialBand(color, .838, .940, '#b7a57142');
-    bump.fillStyle = '#808080';
-    bump.fillRect(-1024, -1024, 2048, 2048);
-    for (const [radius, width] of [[.12,3], [.619,5], [.633,2], [.829,2], [.841,5], [.936,5]]) {
-      ring(color, radius + .002, '#f0e7c7b0', width + 2);
-      ring(color, radius, '#64654e', width);
-      ring(bump, radius, '#494949', width + 2);
-    }
-    for (let quarter = 0; quarter < 96; quarter++) {
-      const hour = quarter / 4, major = quarter % 4 === 0, half = quarter % 2 === 0;
-      const branchHour = quarter % 8 === 0;
-      const start = branchHour ? .851 : major ? .867 : half ? .891 : .908;
-      const noon = hour === 12;
-      const tickWidth = branchHour ? 10 : major ? 7 : half ? 5 : 3.5;
-      lineAt(color, hour, start, .927);
-      stroke(color, '#ece1b880', tickWidth + 4);
-      stroke(color, noon ? '#853f2d' : '#464d3b', tickWidth);
-      lineAt(bump, hour, start, .927);
-      stroke(bump, '#393939', tickWidth + 1);
-      if (major) {
-        const ink = branchHour ? '#686a53' : '#89886e';
-        lineAt(color, hour, .128, .612);
-        stroke(color, '#eee5c58c', branchHour ? 9 : 6);
-        stroke(color, noon ? '#8a5438' : ink, branchHour ? 6 : 4);
-        lineAt(bump, hour, .124, .615);
-        stroke(bump, '#5d5d5d', branchHour ? 6 : 4);
+    for(const mark of dialLayout.marks){
+      ctx.lineWidth=mark.width*(compact?1.22:1);
+      ctx.strokeStyle=marbleInk(mark.hour===12?p.cinnabar:mark.major?p.ink:p.lightInk);
+      for(const [start,end] of mark.spans){
+        ctx.beginPath();ctx.moveTo(...dialXY(start,mark.hour));ctx.lineTo(...dialXY(end,mark.hour));ctx.stroke();
       }
+      if(mark.letter)label(ctx,mark.hour,dialXY(dialLayout.letterRadius,mark.hour),
+        compact?dialLayout.phoneLetterHeight:dialLayout.letterHeight,name==='back',mark.roll);
     }
-    for (const context of [color, bump]) {
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.font = '600 128px "KaiTi", "STKaiti", "Songti SC", "Noto Serif CJK SC", "SimSun", serif';
-    }
-    bump.fillStyle = '#555555';
-    for (let hour = 0; hour < 24; hour += 2) {
-      color.fillStyle = hour === 12 ? '#7e3727' : '#222f26';
-      dialGlyph(color, HOURS[hour / 2], hour, .732, back);
-      dialGlyph(bump, HOURS[hour / 2], hour, .732, back);
-    }
-    result[back ? 'back' : 'front'] = { map:texture(colorCanvas, renderer, true), bump:texture(bumpCanvas, renderer) };
+    faces[name]={map:texture(el,renderer)};
   }
-  return result;
+  return faces;
+}
+
+export function createBowlTexture(renderer,latitude,compact) {
+  const [el,ctx]=sheet(compact?1024:2048);
+  const {lines,letters}=bowlEngravings(latitude);
+  const xy=point=>bowlUV(point).map(x=>2*x-1);
+  for(const {kind,hour,arcs} of lines) {
+    const type=kind==='branch'?'branch':kind==='minor'||kind==='winter'?'minor':'hour';
+    const color=kind==='winter'?p.winter:kind==='summer'||hour===12?p.cinnabar:
+      kind==='branch'?p.ink:p.lightInk;
+    for(const arc of arcs)path(ctx,arc.map(xy),type,color,compact);
+  }
+  for(const {hour,point} of letters)label(ctx,hour,xy(point),compact?.139:.108);
+  return texture(el,renderer);
 }
 
 export function createBaseTexture(renderer) {
-  const [element, context] = canvas(1024);
-  context.translate(512, 512);
-  context.strokeStyle = '#c3b18b'; context.lineWidth = 2.9;
-  context.beginPath(); context.ellipse(0, 0, 315, 415, 0, 0, Math.PI * 2); context.stroke();
-  context.strokeStyle = '#aa946d'; context.lineWidth = 1.7;
-  context.beginPath(); context.ellipse(0, 0, 295, 388, 0, 0, Math.PI * 2); context.stroke();
-  context.beginPath(); context.moveTo(0, -386); context.lineTo(0, 386); context.stroke();
-  context.beginPath(); context.moveTo(-293, 0); context.lineTo(293, 0); context.stroke();
-  for (let index = 0; index < 16; index++) {
-    const angle = index * Math.PI / 8;
-    const x = Math.sin(angle), y = Math.cos(angle);
-    context.beginPath(); context.moveTo(x * 295, y * 388); context.lineTo(x * 315, y * 415); context.stroke();
-  }
-  context.fillStyle = '#ebd4a1';
-  context.beginPath(); context.moveTo(0, -415); context.lineTo(11, -379); context.lineTo(0, -385); context.lineTo(-11, -379); context.fill();
-  context.textAlign = 'center'; context.textBaseline = 'middle'; context.font = '600 46px "KaiTi", "SimSun", serif';
-  for (const [text,x,y] of [['北',0,-448], ['南',0,445], ['东',357,0], ['西',-357,0]]) context.fillText(text,x,y);
-  return texture(element, renderer, true);
+  const [el,ctx]=canvas(1024);
+  const stone=new THREE.Color(p.stone),ink=marbleInk(p.stoneLine,stone);
+  ctx.fillStyle=marbleInk(p.stone,stone);ctx.fillRect(0,0,1024,1024);
+  ctx.translate(512,512);
+  ctx.strokeStyle=ink;ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(0,-424);ctx.lineTo(0,424);ctx.stroke();
+  ctx.font='600 45px '+inscriptionFont;ctx.fillStyle=ink;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const [s,x,y] of [['北',0,-459],['南',0,459],['東',460,0],['西',-460,0]])ctx.fillText(s,x,y);
+  return texture(el,renderer);
 }
 
+// Tangent-space data, independent of albedo. The long, sparse veins have continuous derivatives.
 export function createStoneNormal(renderer) {
-  const [element, context] = canvas(128), image = context.createImageData(128, 128);
-  for (let i = 0; i < image.data.length; i += 4) {
-    const noise = Math.sin(i * 12.9898) * 43758.5453;
-    image.data[i] = 128 + (noise - Math.floor(noise) - .5) * 14;
-    image.data[i + 1] = 128 + (Math.sin(i * 4.1414) * .5) * 8;
-    image.data[i + 2] = 252; image.data[i + 3] = 255;
+  const size=256,[el,ctx]=canvas(size),data=ctx.createImageData(size,size);
+  const tau=2*Math.PI;
+  const height=(x,y)=>Math.sin(tau*(3*x+2*y)+.65*Math.sin(tau*2*y))*.48
+    +Math.sin(tau*(7*x-3*y)+.8*Math.sin(tau*x))*.12;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const u=x/size,v=y/size,i=4*(y*size+x);
+    data.data[i]=128+(height(u-1/size,v)-height(u+1/size,v))*175;
+    data.data[i+1]=128+(height(u,v-1/size)-height(u,v+1/size))*175;
+    data.data[i+2]=254;data.data[i+3]=255;
   }
-  context.putImageData(image, 0, 0);
-  const result = texture(element, renderer);
-  result.wrapS = result.wrapT = THREE.RepeatWrapping; result.repeat.set(3, 3);
+  ctx.putImageData(data,0,0);
+  const result=texture(el,renderer,false);result.wrapS=result.wrapT=THREE.RepeatWrapping;
   return result;
 }
 
-export function createMarkerTexture(kind = 'shadow') {
-  const [element, context] = canvas(256), center = 128;
-  if (kind === 'sun') {
-    const aura = context.createRadialGradient(center, center, 32, center, center, 122);
-    aura.addColorStop(0, '#ffc578ed');
-    aura.addColorStop(.24, '#f5ab6090');
-    aura.addColorStop(.55, '#f0a14f30');
-    aura.addColorStop(1, '#f0a14f00');
-    context.fillStyle = aura;
-    context.fillRect(0, 0, 256, 256);
-    const sphere = context.createRadialGradient(118, 114, 0, center, center, 46);
-    sphere.addColorStop(0, '#fff9e2');
-    sphere.addColorStop(.60, '#fff0b9');
-    sphere.addColorStop(.89, '#ffd58b');
-    sphere.addColorStop(1, '#f9a853');
-    context.fillStyle = sphere;
-    context.beginPath(); context.arc(center, center, 46, 0, Math.PI * 2); context.fill();
-  } else {
-    const glow = context.createRadialGradient(center, center, 64, center, center, 116);
-    glow.addColorStop(0, '#241b154f');
-    glow.addColorStop(1, '#241b1500');
-    context.fillStyle = glow;
-    context.fillRect(0, 0, 256, 256);
-    context.fillStyle = C.cinnabar;
-    context.strokeStyle = '#582f22';
-    context.lineWidth = 8;
-    context.beginPath(); context.arc(center, center, 67, 0, Math.PI * 2); context.fill(); context.stroke();
-    context.strokeStyle = kind === 'secondary' ? C.sun : C.halo;
-    context.lineWidth = 13;
-    context.beginPath(); context.arc(center, center, 77, 0, Math.PI * 2); context.stroke();
+export function createMarkerTexture(kind='shadow') {
+  const [el,c]=canvas(192),r=96;
+  if(kind==='sun'){
+    const g=c.createRadialGradient(r,r,14,r,r,92);
+    g.addColorStop(0,p.sky);g.addColorStop(.28,p.gold);g.addColorStop(1,p.gold+'00');
+    c.fillStyle=g;c.fillRect(0,0,192,192);
+  }else{
+    c.lineWidth=11;c.strokeStyle=kind==='secondary'?p.bronze:p.cinnabar;
+    c.beginPath();c.arc(r,r,53,0,2*Math.PI);c.stroke();
+    c.lineWidth=4;c.strokeStyle=p.paper;c.beginPath();c.arc(r,r,61,0,2*Math.PI);c.stroke();
   }
-  const result = new THREE.CanvasTexture(element);
-  result.colorSpace = THREE.SRGBColorSpace;
-  return result;
+  const t=new THREE.CanvasTexture(el);t.colorSpace=THREE.SRGBColorSpace;return t;
 }
-
-export function createTextTexture(text, color = C.ink) {
-  const [element, context] = canvas(256);
-  context.fillStyle = '#f6f3eadd'; context.beginPath(); context.roundRect(8,70,240,116,18); context.fill();
-  context.fillStyle = color; context.font = '600 54px "Microsoft YaHei", sans-serif';
-  context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(text,128,130);
-  const result = new THREE.CanvasTexture(element); result.colorSpace = THREE.SRGBColorSpace;
-  return result;
+export function createTextTexture(text,color=p.ink) {
+  const [el,c]=canvas(256);
+  c.fillStyle=p.paper+'ed';c.beginPath();c.roundRect(8,70,240,116,18);c.fill();
+  c.fillStyle=color;c.font='600 54px "Microsoft YaHei",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(text,128,130);
+  const t=new THREE.CanvasTexture(el);t.colorSpace=THREE.SRGBColorSpace;return t;
 }

@@ -6,11 +6,15 @@ import { year } from './state/year.js';
 import { restoreObservation } from './state/observation.js';
 import { motionPreferences } from './core/loop.js';
 import SeasonAtmosphere from './components/SeasonAtmosphere.vue';
+import PaperChoice from './components/PaperChoice.vue';
+import { studioCss } from './scene/sundial/sundialTheme.js';
 import MotionDebug from './components/MotionDebug.vue';
 import UiIcon from './components/UiIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
+const onObservatory=computed(()=>route.name==='sky');
+const termOptions=TERMS.map(item=>({value:item.id,label:item.name+' · '+item.longitude+'°'}));
 watch(() => route.query.obs, restoreObservation, { immediate:true });
 year.initialize(route.query.term);
 const term = year.term;
@@ -154,7 +158,8 @@ watch([motionPreferences.reduced,motionPreferences.mode], ([value,mode]) => {
         <span class="control-label">当前节气</span>
         <button class="arrow-button" aria-label="上一节气" @click="selectTerm(adjacentTerm(term.id, -1).id)"><UiIcon name="arrow-left" /></button>
         <label class="sr-only" for="term-picker">选择节气</label>
-        <select id="term-picker" :value="term.id" @change="selectTerm($event.target.value)">
+        <PaperChoice v-if="onObservatory" id="term-picker" label="选择节气" :style="studioCss" :model-value="term.id" :options="termOptions" @update:model-value="selectTerm"/>
+        <select v-else id="term-picker" :value="term.id" @change="selectTerm($event.target.value)">
           <option v-for="item in TERMS" :key="item.id" :value="item.id">{{ item.name }} · {{ item.longitude }}°</option>
         </select>
         <button class="arrow-button" aria-label="下一节气" @click="selectTerm(adjacentTerm(term.id, 1).id)"><UiIcon name="arrow-right" /></button>
@@ -196,3 +201,7 @@ watch([motionPreferences.reduced,motionPreferences.mode], ([value,mode]) => {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.term-control .paper-choice {min-width:130px;}
+</style>

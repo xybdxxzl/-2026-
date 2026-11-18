@@ -1,39 +1,53 @@
-// Shared scene and legend palette. Existing paper/ink/cinnabar values mirror style.css.
+// The instrument studio, its analytical overlays and the printed plates share these sRGB pigments.
+export const palette = Object.freeze({
+  paper: '#F4EEDF', paperEdge: '#E4D9C2', marble: '#EEE7D6',
+  stone: '#BDB3A1', stoneLine: '#8F8573',
+  bronze: '#8C5A2B', gold: '#D6A24A', bronzeDark: '#3A2515', lacquer: '#43291A',
+  ink: '#231D19', lightInk: '#6E6254', cinnabar: '#B5382B', winter: '#34506E',
+  patina: '#6B8573', shadow: '#4A3826',
+  sunlight: '#FFF0D2', sky: '#FFF7E8', ground: '#D9CBB1',
+  studioPaper:'#ECE7DD', studioEdge:'#B9ACA0', reflection:'#B8ADA1',
+  oxide:'#796B57', burnished:'#C4AE85', umber:'#745E50', stoneShade:'#948679',
+  springWash: '#EAE4BC', summerWash: '#EFCFBD', autumnWash: '#EBD8A8', winterWash: '#CFD8E2',
+  nightWash: '#DAD5CA', twilightWash: '#DFD8CC', dawnWash: '#E6DCCC', duskWash: '#E4D8C9',
+  morningWash: '#EBDFC4', daylightWash: '#F1E2B8',
+  onCinnabar: '#FFFFFF',
+});
+
+export const paperGradient = `radial-gradient(ellipse farthest-corner at 50% 50%, ${palette.paper}, ${palette.paperEdge})`;
+export const studioCss = Object.fromEntries(Object.entries(palette).map(([key,value])=>['--dial-'+key,value]));
+studioCss['--dial-background'] = paperGradient;
+studioCss['--ruler-font'] = '"Songti SC","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif';
+
+export const branches = '子丑寅卯辰巳午未申酉戌亥';
+export const inscriptionFont = '"KaiTi","STKaiti","Songti SC","Noto Serif CJK SC","SimSun",serif';
+
+// Compatibility names also used by the time controls and educational overlays.
 export const SUNDIAL_COLORS = Object.freeze({
-  paper: '#f6f3ea',          // Page and marker halo; matches --paper.
-  stage: '#132922',          // Dark mineral-green gallery floor.
-  stageLight: '#294439',
-  stageEdge: '#101e1b',
-  ink: '#243e36',            // Engraved grooves and current shadow; matches --ink.
-  muted: '#626c60',          // Secondary annotations; matches --muted.
-  cinnabar: '#9e4935',       // Analytical shadow endpoint; matches --accent.
-  cinnabarTrack: '#a66f5c',  // Lower-saturation shadow-tip track.
-  bronze: '#9a794c',         // Dial edge and support metal.
-  bronzeDark: '#536b5c',     // Needle and dark bronze details.
-  dial: '#c9b383',           // Matte, bright engraved face for high line contrast.
-  dialHighlight: '#ead9b7',  // Engraved groove highlight.
-  stone: '#b8b09e',          // Warm stepped stone base.
-  stoneTop: '#c8c0ad',       // Base reading surface.
-  sun: '#f3b963',            // Warm-gold solar arc and direction marker.
-  sunCore: '#fff1c7',        // Sun marker centre.
-  ray: '#fce0a2',            // Optional light incidence guide.
-  halo: '#fff4d7',           // Light halo around the cinnabar endpoint.
-  debug: '#167c80',          // ?debug=geom independent projection marker.
+  paper:palette.paper, stage:palette.ink, stageLight:palette.lightInk, stageEdge:palette.paperEdge,
+  ink:palette.ink, muted:palette.lightInk, cinnabar:palette.cinnabar, cinnabarTrack:palette.cinnabar,
+  bronze:palette.bronze, bronzeDark:palette.bronzeDark, dial:palette.marble, dialHighlight:palette.paper,
+  stone:palette.stone, stoneTop:palette.marble, sun:palette.gold, sunCore:palette.sunlight,
+  ray:palette.bronze, halo:palette.paper, debug:palette.cinnabar,
 });
-
-export const SUNDIAL_MODEL = Object.freeze({
-  radius: 5,
-  thicknessRatio: 0.07,
-  needleDiameterRatio: 0.025,
-  baseWidthRatio: 2.8,
-  baseHeightRatio: 0.3,
-  dialClearanceRatio: 0.15,
-  skyRadiusRatio: 1.8,
-  shadowWidthRatio: 0.018,
-});
-
 export const SUNDIAL_VIEWS = Object.freeze({
-  oblique: { azimuth: 32, elevation: 29 },
-  back: { azimuth: 157, elevation: 14 },
-  side: { azimuth: 90, elevation: 8 },
+  oblique:{azimuth:46,elevation:24}, back:{azimuth:148,elevation:16},
+  south:{azimuth:164,elevation:10}, side:{azimuth:90,elevation:8}, bowl:{azimuth:133,elevation:41},
+});
+export const SUNDIAL_SOLSTICES = Object.freeze({
+  xiazhi:{name:'夏至', color:palette.cinnabar, arcAhead:palette.bronze, glow:palette.gold, core:palette.sunlight, angleRadius:1.12},
+  dongzhi:{name:'冬至', color:palette.lightInk, arc:palette.winter, arcAhead:palette.winter, glow:palette.lightInk, core:palette.paper, angleRadius:1.72},
+});
+export const CELESTIAL_COLORS = Object.freeze({
+  night:palette.ink, grid:palette.stoneLine, horizon:palette.lightInk, equator:palette.bronzeDark,
+  ecliptic:palette.bronze, pole:palette.gold, stars:palette.ink, dipper:palette.bronze,
+});
+export const REFERENCE_COLORS = Object.freeze({
+  post:palette.stone, base:palette.lightInk, cap:palette.marble, rule:palette.stoneLine,
+});
+const rgb = color => color.slice(1).match(/../g).map(channel=>parseInt(channel,16));
+const stops = colors => [-90,-12,-6,0,10,75].map((alt,i)=>[alt,rgb(colors[i])]);
+export const TIMELINE_COLORS = Object.freeze({
+  morning:stops([palette.nightWash,palette.nightWash,palette.twilightWash,palette.dawnWash,palette.morningWash,palette.daylightWash]),
+  evening:stops([palette.nightWash,palette.nightWash,palette.twilightWash,palette.duskWash,palette.morningWash,palette.daylightWash]),
 });
