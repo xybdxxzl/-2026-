@@ -16,9 +16,9 @@ export function createWarmEnvironment(renderer) {
   }
   card(-4,5,-3,6.5,7,palette.sky,3.6);
   card(4,2,3,2.7,6,palette.paper,2.6);
-  card(1,.7,5,5,3.6,palette.paper,1.7);
+  card(1,1.2,5,7,4.8,palette.paper,1.95);
   card(0,5,3,5,3,palette.sky,1.8);
-  card(1,-3,-4,5,2,palette.ground,.43);
+  card(1,-2,-4,6,3,palette.ground,.85);
   const generator=new THREE.PMREMGenerator(renderer);
   const target=generator.fromScene(room,.17,.1,20);
   generator.dispose();cardShape.dispose();cards.forEach(m=>m.dispose());
@@ -53,7 +53,7 @@ function contactPatch() {
     data[i+3]=Math.round(255*Math.exp(-170*distance*distance));
   }
   const map=new THREE.DataTexture(data,size,size);map.magFilter=map.minFilter=THREE.LinearFilter;map.needsUpdate=true;
-  const material=new THREE.MeshBasicMaterial({map,color:palette.shadow,opacity:.32,transparent:true,depthWrite:false,toneMapped:false});
+  const material=new THREE.MeshBasicMaterial({map,color:palette.shadow,opacity:.36,transparent:true,depthWrite:false,toneMapped:false});
   const contact=new THREE.Mesh(new THREE.PlaneGeometry(1,1),material);
   contact.rotation.x=-Math.PI/2;contact.position.y=-.012;contact.renderOrder=-10;
   return contact;
@@ -91,8 +91,8 @@ export function setStudioSun(studio,center,direction,altitude) {
   light.target.position.copy(center);
   light.intensity=3.15*Math.pow(gain,.34);
   light.castShadow=daylight;light.shadow.needsUpdate=daylight;
-  fill.intensity=.15+.17*gain;
-  scene.environmentIntensity=.28+.62*gain;
+  fill.intensity=.21+.20*gain;
+  scene.environmentIntensity=.40+.58*gain;
   solarSpread.value=THREE.MathUtils.lerp(.008,.0045,gain);
   supportSpread.value=THREE.MathUtils.lerp(.072,.047,gain);
   stageShadow.opacity=daylight?.26:0;

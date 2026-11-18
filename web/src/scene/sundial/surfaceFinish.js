@@ -74,7 +74,7 @@ export function applySurfaceFinish(material) {
       float density=max(pigment.r,max(pigment.g,pigment.b));
       float polished=mix(.025,.72,smoothstep(.16,.80,density));
       float inkAbsorption=mix(.68,1.0,smoothstep(.06,.32,density));
-      reflectedLight.indirectDiffuse *= .095*inkAbsorption;
+      reflectedLight.indirectDiffuse *= .074*inkAbsorption;
       reflectedLight.directDiffuse *= 1.37*inkAbsorption;
       reflectedLight.directSpecular *= polished;
       reflectedLight.indirectSpecular *= polished;

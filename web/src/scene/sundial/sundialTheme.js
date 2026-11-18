@@ -7,7 +7,7 @@ export const palette = Object.freeze({
   patina: '#6B8573', shadow: '#4A3826',
   sunlight: '#FFF0D2', sky: '#FFF7E8', ground: '#D9CBB1',
   studioPaper:'#ECE7DD', studioEdge:'#B9ACA0', reflection:'#B8ADA1',
-  oxide:'#796B57', burnished:'#C4AE85', umber:'#745E50', stoneShade:'#948679',
+  oxide:'#AB8866', burnished:'#CEB998', umber:'#927660', stoneShade:'#C1B6A7',
   springWash: '#EAE4BC', summerWash: '#EFCFBD', autumnWash: '#EBD8A8', winterWash: '#CFD8E2',
   nightWash: '#DAD5CA', twilightWash: '#DFD8CC', dawnWash: '#E6DCCC', duskWash: '#E4D8C9',
   morningWash: '#EBDFC4', daylightWash: '#F1E2B8',

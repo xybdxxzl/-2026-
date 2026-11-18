@@ -6,7 +6,7 @@ export const moulding = Object.freeze({ fine:.01, bead:.02, rail:.04 });
 const waistHeight=3*moulding.rail;
 export const plinthHeight = 2*moulding.rail+waistHeight;
 export const lip = Object.freeze({ width:.048, line:.007 });
-const bevel=.004;
+const bevel=.008;
 
 export function mesh(parent,geometry,material,name) {
   const item=new THREE.Mesh(geometry,material);
