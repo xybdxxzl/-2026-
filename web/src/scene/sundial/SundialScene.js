@@ -434,7 +434,6 @@ export class SundialScene {
     const solstices=this.state.solstices??[];
     const referenceShadows=solstices.length?solstices.map(({id,shadow})=>shadow&&({
       ...shadow,id,active:id===this.state.solsticeDriver,
-      label:`${id==='xiazhi'?'夏至':'冬至'} 约 ${shadow.lengthChi.toFixed(2)} 尺`,
     })):[sun&&(this.layers.ray||this.state.compare)?verticalGnomonShadow(sun):null];
     this.reference.update({visible:Boolean(solstices.length||this.state.compare),shadows:referenceShadows.map(shadow=>shadow&&({
       ...shadow,eastChi:shadow.groundPointChi[0],northChi:-shadow.groundPointChi[2],

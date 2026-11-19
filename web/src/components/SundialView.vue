@@ -72,6 +72,10 @@ const layers = ref({ sky:false, shadow:false, ray:false, compass:false, dome:fal
 const playing = ref(false), speed = ref(1), explanation = ref(false);
 const comparePeer = ref(initial.selected === 'xiazhi' ? 'dongzhi' : 'xiazhi');
 const solsticeMode = ref(false);
+const comparisonDock = ref(null);
+const wideLayout = window.matchMedia('(min-width:961px)');
+const dockReadings = ref(wideLayout.matches);
+function syncComparisonLayout() { dockReadings.value = wideLayout.matches; }
 const equinox = ref(false);
 const solsticeIds = ['xiazhi','dongzhi'];
 const solsticeNames = { xiazhi:'夏至', dongzhi:'冬至' };
@@ -382,6 +386,7 @@ function activate() {
   else if (!route.query.obs || route.query.observeTerm) commit(); else syncYear();
 }
 onMounted(() => {
+  wideLayout.addEventListener('change',syncComparisonLayout);
   activate(); document.addEventListener('visibilitychange',onVisibility);
 });
 onActivated(activate);
@@ -390,7 +395,7 @@ function deactivate() {
   pause(); unsubscribe?.(); unsubscribe = null; active = false;
 }
 onDeactivated(deactivate);
-onBeforeUnmount(() => { deactivate(); document.removeEventListener('visibilitychange',onVisibility); });
+onBeforeUnmount(() => { wideLayout.removeEventListener('change',syncComparisonLayout); deactivate(); document.removeEventListener('visibilitychange',onVisibility); });
 syncDraft();
 </script>
 
@@ -410,8 +415,11 @@ syncDraft();
                 <h2>{{ isBowl ? '半球碗式日晷' : '双面赤道式日晷' }}</h2>
                 <p>{{ place.name }}<span aria-hidden="true"> / </span>{{ date }}</p>
               </div>
-              <button v-if="!isFlat" type="button" class="dome-toggle" :aria-pressed="layers.dome"
+              <div class="view-modes">
+                <button type="button" :aria-pressed="solsticeMode" @click="toggleSolstice">二至对照</button>
+                <button v-if="!isFlat" type="button" :aria-pressed="layers.dome"
                 @click="layers.dome=!layers.dome">{{ layers.dome ? '回看日晷' : '展开天球' }}</button>
+              </div>
               <div class="scene-switches">
                 <RulerSegments label="日晷器型" :model-value="instrumentKind" :options="instruments" @update:model-value="chooseInstrument"/>
                 <RulerSegments v-if="!isFlat" label="观察视角" :model-value="preset" :options="cameraOptions" @update:model-value="setPreset"/>
@@ -419,7 +427,7 @@ syncDraft();
             </header>
             <div class="scene-viewport" :class="{'dome-viewport':layers.dome && !isFlat}" aria-label="日晷观测图">
               <BowlFallback v-if="(isFlat || !ready) && isBowl" class="fallback-underlay" :latitude="place.latitude" :solar="solar" :layers="layers"
-                :tracks="tracks" :secondary="solsticeMode ? solsticePair.find(item=>item.id!==current.selected)?.solar : showBoth ? secondarySolar : null" />
+                :tracks="tracks" :solstice-driver="solsticeMode ? current.selected : undefined" :secondary="solsticeMode ? solsticePair.find(item=>item.id!==current.selected)?.solar : showBoth ? secondarySolar : null" />
               <SundialFallback v-else-if="isFlat || !ready" class="fallback-underlay" polar-mode :face="face"
                 :solar="solar" :latitude="place.latitude" :tracks="tracks" :layers="layers" :solstices="solsticePair" />
               <Scene v-if="mounted && !isFlat" :instrument-kind="instrumentKind" class="scene-overlay" :solar="solar" :latitude="place.latitude"
@@ -432,6 +440,43 @@ syncDraft();
               <p v-if="fallback" class="scene-note" role="status">三维暂不可用，已切换为二维图。</p>
               <p v-else-if="!forceFlat && !ready" class="scene-note" role="status">正在准备三维场景</p>
             </div>
+            <Teleport v-if="solsticeMode" :to="comparisonDock" :disabled="!dockReadings || !comparisonDock">
+              <section class="solstice-comparison" aria-label="二至对照读数">
+                <div class="comparison-heading">
+                  <h2>二至对照</h2>
+                  <div class="scene-driver" role="group" aria-label="驱动日照的节气">
+                      <button v-for="id in solsticeIds" :key="id" type="button" :aria-pressed="current.selected===id"
+                        @click="change(() => selectComparison(id))">{{ solsticeNames[id] }}</button>
+                  </div>
+                </div>
+                <div class="quick-compare">
+                  <span>同一真太阳时 {{ formatSolarTime(compareTime) }}</span>
+                  <label v-if="!isFlat && !isBowl"><input v-model="xray" type="checkbox" />透视晷面</label>
+                  <label v-if="!isFlat"><input v-model="equinox" type="checkbox" />分日参考弧</label>
+                </div>
+                <table class="solstice-readings">
+                  <thead>
+                    <tr>
+                      <th scope="col">观测量</th>
+                      <th v-for="item in solsticePair" :key="item.id" scope="col" :class="item.id">{{ solsticeNames[item.id] }}</th>
+                      <th scope="col">差值</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">太阳高度</th>
+                      <td v-for="item in solsticePair" :key="item.id" :class="item.id">{{ formatMeasure(item.solar?.altitude,'°') }}</td>
+                      <td>{{ formatMeasure(solsticeDifference.altitude,'°') }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">八尺表影长</th>
+                      <td v-for="item in solsticePair" :key="item.id" :class="item.id">{{ item.solar && !item.shadow ? '无直射影' : formatMeasure(item.shadow?.lengthChi,' 尺') }}</td>
+                      <td>{{ formatMeasure(solsticeDifference.length,' 尺') }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </Teleport>
             <section class="time-bands" aria-label="授时尺">
               <TimeAxis :value="sliderValue" :playing="playing" v-model:speed="speed" :solar="solar" :daylight="daylight"
                 :samples="dayPoints" :comparison="solsticeDaylight"
@@ -445,11 +490,6 @@ syncDraft();
                 <button type="button" class="light-control" :aria-pressed="layers.ray" @click="layers.ray=!layers.ray">
                   <UiIcon name="sun" />光影关系
                 </button>
-                <button type="button" :aria-pressed="solsticeMode" @click="toggleSolstice">二至对照</button>
-                <div v-if="solsticeMode" class="scene-driver" role="group" aria-label="驱动日照的节气">
-                  <button v-for="id in solsticeIds" :key="id" type="button" :aria-pressed="current.selected===id"
-                    @click="change(() => selectComparison(id))">{{ solsticeNames[id] }}</button>
-                </div>
                 <button v-if="!isFlat" type="button" class="touch-toggle" :aria-pressed="touchActive"
                   @click="touchActive=!touchActive">{{ touchActive ? '恢复滚动' : '触摸旋转' }}</button>
 
@@ -464,7 +504,6 @@ syncDraft();
                 :shadow-marker="annotatedShadow && (isBowl ? solar.altitude>0 : solar.polar.inside && (!isFlat || solar.polar.face===face))"
                 :ray-visible="solar.altitude>0 && (isBowl || !isFlat || (solar.polar.valid && solar.polar.face===face))" />
               <p class="face-badge">{{ seasonalFace }} <span>{{ declinationText }}</span></p>
-              <p v-if="solsticeMode && solsticeDifference.length!==null" class="face-badge">表影差 {{ formatMeasure(solsticeDifference.length,' 尺') }}</p>
               <p v-if="!isFlat" class="orbit-hint">拖动旋转 · 滚轮缩放</p>
               <span v-if="!isFlat && (layers.dome || layers.sky || solsticeMode || compare)" class="scene-scale">{{ [layers.dome ? '天球半径非比例' : layers.sky ? '天空轨迹非比例' : '', (solsticeMode || compare) ? '圭表比例为示意' : ''].filter(Boolean).join(' · ') }}</span>
               <p v-if="layers.dome && !isFlat" class="dome-credit">外视天球，星象左右相反
@@ -480,35 +519,7 @@ syncDraft();
               </div>
             </footer>
           </div>
-          <section v-if="solsticeMode" class="solstice-comparison" aria-label="二至对照读数">
-            <div class="quick-compare">
-              <span>同一真太阳时 {{ formatSolarTime(compareTime) }}</span>
-              <label v-if="!isFlat && !isBowl"><input v-model="xray" type="checkbox" />透视晷面</label>
-              <label v-if="!isFlat"><input v-model="equinox" type="checkbox" />分日参考弧</label>
-            </div>
-            <table class="solstice-readings">
-              <thead>
-                <tr>
-                  <th scope="col">观测量</th>
-                  <th v-for="item in solsticePair" :key="item.id" scope="col" :class="item.id">{{ solsticeNames[item.id] }}</th>
-                  <th scope="col">差值</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">太阳高度</th>
-                  <td v-for="item in solsticePair" :key="item.id">{{ formatMeasure(item.solar?.altitude,'°') }}</td>
-                  <td>{{ formatMeasure(solsticeDifference.altitude,'°') }}</td>
-                </tr>
-                <tr>
-                  <th scope="row">八尺表影长</th>
-                  <td v-for="item in solsticePair" :key="item.id">{{ item.solar && !item.shadow ? '无直射影' : formatMeasure(item.shadow?.lengthChi,' 尺') }}</td>
-                  <td>{{ formatMeasure(solsticeDifference.length,' 尺') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-          <section v-else-if="compare && !isFlat" class="quick-compare" aria-label="节气比较图层">
+          <section v-if="compare && !solsticeMode && !isFlat" class="quick-compare" aria-label="节气比较图层">
               <span>比较图层</span>
               <label><input v-model="showBoth" type="checkbox" />同时显示</label>
               <label v-if="!isBowl"><input v-model="xray" type="checkbox" />透视晷面</label>
@@ -516,6 +527,7 @@ syncDraft();
         </div>
 
         <div class="side-stack">
+          <div ref="comparisonDock" class="comparison-dock"></div>
           <section class="observation-panel" aria-labelledby="observation-title">
             <h2 id="observation-title">观测条件</h2>
             <div class="observation-bar">
@@ -889,8 +901,13 @@ syncDraft();
 :is(.quick-compare, .layers) input {
   accent-color: var(--green);
 }
+.comparison-dock:empty {display:none;}
+.comparison-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.comparison-heading h2 {font:20px var(--ruler-font);}
+.comparison-heading button {min-height:36px;padding:4px 10px;border:1px solid var(--line);}
+.comparison-heading button[aria-pressed=true] {color:var(--dial-paper);background:var(--dial-ink);}
 .solstice-comparison {
-  padding: 0 14px 8px;
+  padding: 12px 14px 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -920,10 +937,10 @@ syncDraft();
   border-top: 1px solid var(--line);
 }
 .solstice-readings .xiazhi {
-  color: var(--dial-bronze);
+  color: var(--dial-cinnabar);
 }
 .solstice-readings .dongzhi {
-  color: var(--dial-lightInk);
+  color: var(--dial-winter);
 }
 .side-stack {
   display: grid;
@@ -1109,7 +1126,7 @@ syncDraft();
 .scene-name h2 {font:20px/1.4 var(--ruler-font);}
 .scene-switches,.scene-tools,.surface-tools {display:flex;align-items:center;}
 .scene-toolbar {flex-wrap:wrap;}
-.dome-toggle {margin-left:auto;}
+.view-modes {display:flex;align-items:center;gap:5px;margin-left:auto;}
 .scene-switches {margin-left:0;gap:8px;flex-wrap:nowrap;max-width:100%;overflow-x:auto;}
 .scene-switches > :last-child:not(:first-child) {padding-left:8px;border-left:1px solid var(--stage-edge);}
 .scene-tools {gap:6px;flex-wrap:wrap;padding:6px 14px;border-top:1px solid var(--line);font:14px/1.2 var(--ruler-font);}

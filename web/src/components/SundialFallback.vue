@@ -67,7 +67,7 @@ const needleB = computed(() => basis.value.P.map(value => value*POLAR_RADIUS*STY
 const scalePolarSun = sun => sun.map(value => value*SKY_RADIUS);
 const polarSun = computed(() => scalePolarSun(props.solar.polar.sun));
 const polarRayStart = computed(() => polarShadow.value?.tip?.map((value,i)=>value+polarShadow.value.sun[i]*8));
-const solsticeColor = { xiazhi:'var(--dial-gold)', dongzhi:'var(--dial-winter)' };
+const solsticeColor = { xiazhi:'var(--dial-cinnabar)', dongzhi:'var(--dial-winter)' };
 </script>
 
 <template>
@@ -89,7 +89,7 @@ const solsticeColor = { xiazhi:'var(--dial-gold)', dongzhi:'var(--dial-winter)' 
           <path :d="worldPath(item.tracks.day)" fill="none" :stroke="solsticeColor[item.id]"
             :stroke-dasharray="item.id==='dongzhi' ? '5 3' : undefined" stroke-width="1.7" />
           <circle v-if="item.solar?.altitude>0" :transform="'translate('+worldPoint(scalePolarSun(item.solar.polar.sun))+')'"
-            r="5" :fill="item.id==='dongzhi'?'var(--dial-lightInk)':solsticeColor[item.id]" stroke="var(--dial-sunlight)" stroke-width="1.5" />
+            r="5" :fill="solsticeColor[item.id]" stroke="var(--dial-sunlight)" stroke-width="1.5" />
         </template>
       </g>
       <template v-else>

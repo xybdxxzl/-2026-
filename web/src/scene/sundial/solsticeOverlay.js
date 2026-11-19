@@ -114,12 +114,10 @@ function buildSeason(group, theme) {
   const ray = line(theme.color, 1);
   const incoming = line(theme.color, 1, true);
   const angle = line(theme.color, angleSteps);
-  const angleLabel = solarLabel();
-  angleLabel.sprite.scale.multiplyScalar(.8);
   const root = new THREE.Group();
-  root.add(path.group, mark, label.sprite, ray, incoming, angle, angleLabel.sprite);
+  root.add(path.group, mark, label.sprite, ray, incoming, angle);
   group.add(root);
-  return { root, theme, path, mark, label, ray, incoming, angle, angleLabel, arcPoints:[], rayPoints:[],
+  return { root, theme, path, mark, label, ray, incoming, angle, arcPoints:[], rayPoints:[],
     trackCenter:new THREE.Vector3(), sunDirection:new THREE.Vector3() };
 }
 
@@ -139,11 +137,10 @@ function updatePath(season, tracks, center, radius) {
 }
 
 function updateGuide(season, shadow, sun, reference, radius) {
-  const { ray, incoming, angle, angleLabel, theme } = season;
+  const { ray, incoming, angle, theme } = season;
   const point = shadow?.groundPointChi;
   const valid = Boolean(point?.every(Number.isFinite));
   ray.visible = incoming.visible = angle.visible = valid;
-  angleLabel.sprite.visible = false;
   season.rayPoints = [];
   if (!valid) return;
 
@@ -174,10 +171,6 @@ function updateGuide(season, shadow, sun, reference, radius) {
       .addScaledVector(Y, arcRadius * Math.sin(phi)).toArray();
   });
   setLine(angle, points.slice(1).flatMap((point, index) => [...points[index], ...point]));
-  angleLabel.sprite.visible = true;
-  angleLabel.sprite.position.copy(origin).addScaledVector(ground, -.35)
-    .addScaledVector(Y, arcRadius * Math.sin(altitude*.5) + .92);
-  updateLabel(angleLabel, theme, `${(altitude*180/Math.PI).toFixed(1)}°`);
 }
 
 function updateSeason(season, sample, active, center, radius, reference) {
@@ -194,7 +187,6 @@ function updateSeason(season, sample, active, center, radius, reference) {
   season.markerPoints = [];
   if (!lit) {
     ray.visible = incoming.visible = angle.visible = false;
-    season.angleLabel.sprite.visible = false;
     season.rayPoints = [];
     return;
   }
@@ -205,7 +197,7 @@ function updateSeason(season, sample, active, center, radius, reference) {
   mark.material.opacity = active ? 1 : .79;
   label.sprite.position.copy(mark.position).addScaledVector(Y, .83);
   label.sprite.material.opacity = active ? 1 : .87;
-  updateLabel(label, season.theme, `${season.theme.name}  ${solar.altitude.toFixed(1)}°`);
+  updateLabel(label, season.theme, season.theme.name);
   season.markerPoints = [mark.position, label.sprite.position.clone().addScaledVector(Y, .39)];
   for (const guide of [ray, incoming, angle]) {
     guide.material.linewidth = active ? 2.25 : 1.65;

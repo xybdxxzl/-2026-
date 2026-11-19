@@ -36,7 +36,7 @@ export const SUNDIAL_VIEWS = Object.freeze({
 });
 export const SUNDIAL_SOLSTICES = Object.freeze({
   xiazhi:{name:'夏至', color:palette.cinnabar, arcAhead:palette.bronze, glow:palette.gold, core:palette.sunlight, angleRadius:1.12},
-  dongzhi:{name:'冬至', color:palette.lightInk, arc:palette.winter, arcAhead:palette.winter, glow:palette.lightInk, core:palette.paper, angleRadius:1.72},
+  dongzhi:{name:'冬至', color:palette.winter, arc:palette.winter, arcAhead:palette.winter, glow:palette.lightInk, core:palette.paper, angleRadius:1.72},
 });
 export const CELESTIAL_COLORS = Object.freeze({
   night:palette.ink, grid:palette.stoneLine, horizon:palette.lightInk, equator:palette.bronzeDark,

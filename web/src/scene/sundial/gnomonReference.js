@@ -179,7 +179,9 @@ function updateShadow(shadow, entry, index) {
     mesh.renderOrder = 6;
   }
 
-  const text = entry.label ?? formatShadow(entry.lengthChi);
+  label.sprite.visible = !SUNDIAL_SOLSTICES[entry.id];
+  if (!label.sprite.visible) return;
+  const text = formatShadow(entry.lengthChi);
   label.sprite.position.set(distance > .65 ? x : x + 1, .62 + index * .28, z);
   const key = `${color}|${text}`;
   if (key !== shadow.text) {
