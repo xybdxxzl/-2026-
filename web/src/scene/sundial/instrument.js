@@ -24,20 +24,23 @@ function earGeometry() {
   const hole=new THREE.Path();hole.moveTo(-.178,.08);
   hole.quadraticCurveTo(-.082,.28,-.035,.57);hole.quadraticCurveTo(0,.75,.035,.57);
   hole.quadraticCurveTo(.082,.28,.178,.08);hole.closePath();s.holes.push(hole);
-  return new THREE.ExtrudeGeometry(s,{depth:earOuter-earInner-.008,bevelSize:.004,bevelThickness:.004,bevelSegments:3,curveSegments:24})
-    .translate(0,0,-(earOuter-earInner-.008)/2).rotateY(Math.PI/2);
+  return new THREE.ExtrudeGeometry(s,{depth:earOuter-earInner-.014,bevelSize:.008,bevelThickness:.007,bevelSegments:4,curveSegments:24})
+    .translate(0,0,-(earOuter-earInner-.014)/2).rotateY(Math.PI/2);
 }
 
 function supports(frame,kit) {
   const {bronze,dark,gold}=kit.materials;
-  const ears=earGeometry(),shaft=new THREE.CylinderGeometry(.028,.028,earInner-1,40).rotateZ(Math.PI/2);
+  const ears=earGeometry();
+  const halfGap=(earInner-1)/2;
+  const shaft=turn([[.039,-halfGap],[.039,-halfGap*.64],[.028,-halfGap*.36],
+    [.028,halfGap*.36],[.039,halfGap*.64],[.039,halfGap]],48).rotateZ(Math.PI/2);
   for(const side of [-1,1]){
     mesh(frame,ears,bronze,'如意耳座').position.set(side*(earOuter+earInner)/2,plinthHeight,0);
     mesh(frame,shaft,dark,'短耳轴').position.set(side*(1+earInner)/2,plinthHeight+pivot,0);
-    const boss=mesh(frame,turn([[0,0],[.074,0],[.079,.01],[.069,.02],[0,.02]],48).rotateZ(-side*Math.PI/2),gold,'轴盖');
+    const boss=mesh(frame,turn([[0,0],[.084,0],[.084,.006],[.079,.012],[.064,.023],[.046,.023],[.040,.017],[0,.017]],48).rotateZ(-side*Math.PI/2),gold,'轴盖');
     boss.position.set(side*earOuter,plinthHeight+pivot,0);
     const recess=mesh(frame,new THREE.CylinderGeometry(.034,.034,m.fine,40).rotateZ(Math.PI/2),bronze,'轴心');
-    recess.position.set(side*(earOuter+m.bead+m.fine/2),plinthHeight+pivot,0);kit.mid.push(recess);
+    recess.position.set(side*(earOuter+.017+m.fine/2),plinthHeight+pivot,0);kit.mid.push(recess);
   }
 }
 function lotus(parent,kit,sign) {
@@ -60,7 +63,9 @@ export function createInstrument(latitude,textures,baseMap,normal,compact=false)
   const body=scaledGroup(dial),inner=1-lip.width;
   const bronze=kit.materials.bronze;
   const rimMaterial=bronze.clone();
-  mesh(body,turn([[inner,-face],[.982,-face],[1,-face+m.fine],[1,face-m.fine],[.982,face],[inner,face]])
+  rimMaterial.roughness=.33;
+  mesh(body,turn([[inner,-face],[.976,-face],[.988,-face+.003],[.997,-face+.012],
+    [1,-face+.021],[1,face-.021],[.997,face-.012],[.988,face-.003],[.976,face],[inner,face]])
     .rotateX(Math.PI/2),rimMaterial,'盘缘');
   const disk=new THREE.CircleGeometry(inner,160),uv=disk.attributes.uv;
   for(let i=0;i<uv.count;i++)uv.setXY(i,.5+(uv.getX(i)-.5)*inner,.5+(uv.getY(i)-.5)*inner);
