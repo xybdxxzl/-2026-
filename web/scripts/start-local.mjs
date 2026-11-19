@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const noOpen = process.argv.includes('--no-open');
+const entryPath = process.argv.includes('--sundial') ? '/#/sky' : '/';
 
 try {
   const [major, minor] = process.versions.node.split('.').map(Number);
@@ -21,7 +22,7 @@ try {
   const server = await createServer({
     root: projectRoot,
     configFile: resolve(projectRoot, 'vite.config.js'),
-    server: { host: '127.0.0.1', port: 5173, strictPort: false, open: !noOpen },
+    server: { host: '127.0.0.1', port: 5173, strictPort: false, open: noOpen ? false : entryPath },
   });
   await server.listen();
   const url = server.resolvedUrls?.local?.[0];
@@ -29,7 +30,7 @@ try {
     await server.close();
     throw new Error('服务未能取得可访问的本地地址，请重新启动。');
   }
-  console.log(`原型已就绪：${url}`);
+  console.log(`原型已就绪：${new URL(entryPath, url).href}`);
   console.log(noOpen ? '浏览器自动打开已跳过。' : '正在自动打开默认浏览器；如果没有弹出，请复制上面的地址打开。');
   console.log('使用期间请保留此窗口。按 Ctrl+C 或关闭窗口可停止服务。\n');
 
