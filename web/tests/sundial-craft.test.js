@@ -36,7 +36,7 @@ test('the three stone courses meet and both instruments use the same marble and 
     instrument.setDetail(1);assert.ok(cap.map);
     const face=instrument.faceMaterials[0];
     assert.equal(face.color.getHexString(),palette.marble.slice(1).toLowerCase());
-    close(face.roughness,.6);
+    close(face.roughness,instrument.kind==='plate' ? .6 : .69);
     const metal=instrument.group.getObjectByName(instrument.kind==='plate'?'盘缘':'碗唇').material;
     assert.equal(metal.color.getHexString(),palette.bronze.slice(1).toLowerCase());
     close(metal.metalness,.85);assert.ok(metal.roughness>=.32&&metal.roughness<=.45);

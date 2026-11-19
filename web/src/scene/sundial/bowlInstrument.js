@@ -59,14 +59,21 @@ export function createBowlInstrument(latitude,bowlMap,baseMap,normal,compact=fal
   dial.position.y=(plinthHeight+bowlHeight)*DIAL_RADIUS;group.add(dial);
   const cup=scaledGroup(dial),profile=[],start=Math.acos(-yJoin/shellRadius);
   for(let i=0;i<=56;i++){const a=start+(Math.PI/2-start)*i/56;profile.push([shellRadius*Math.sin(a),-shellRadius*Math.cos(a)]);}
-  mesh(cup,turn(profile),lacquer,'漆铜外壁');
+  const satin=bronze.clone();
+  satin.roughness=.46;
+  satin.metalness=.72;
+  mesh(cup,turn(profile),satin,'漆铜外壁');
   const inner=mesh(cup,innerBowl(),kit.marble(bowlMap,THREE.FrontSide),'bowl-reading-surface');
+  inner.material.roughness=.69;
   for(const y of [-.108,-.264])kit.mid.push(mesh(cup,stringCourse(y),bronze,'弦纹'));
   if(!compact){
     const inlay=dark.clone();inlay.side=THREE.DoubleSide;inlay.roughness=.45;
     const fret=mesh(cup,meander(),inlay,'窄回纹带');fret.castShadow=false;kit.near.push(fret);
   }
-  mesh(cup,turn([[shellRadius-.001,-m.bead],[1+lip.width+.013,-m.fine],[1+lip.width+.008,0],[1,0]]),bronze,'碗唇');
+  const rolledLip=turn([[shellRadius-.001,-.029],[1+lip.width+.009,-.022],
+    [1+lip.width+.015,-.014],[1+lip.width+.014,-.008],[1+lip.width+.006,-.002],
+    [1+lip.width,0],[1.014,0],[1.007,-.002],[1,0]]);
+  mesh(cup,rolledLip,bronze,'碗唇');
   ringTrim(cup,kit,1.004,new THREE.Vector3(0,.0004,0),-Math.PI/2);
   const north=new THREE.MeshStandardMaterial({color:palette.cinnabar,roughness:.68});
   for(let i=0;i<4;i++){
