@@ -73,10 +73,11 @@ function end(event){
 <template>
   <div class="time-axis" aria-label="一日真太阳时">
     <div class="ruler-heading">
-      <h3>授时尺</h3>
+      <div class="time-buttons ruler-title"><h3>授时尺</h3>
+        <button type="button" class="play" :aria-pressed="playing" @click="emit('toggle-play')">{{ playing?'暂停':'播放一天' }}</button>
+      </div>
       <div class="ruler-reading"><span>真太阳时</span><output>{{ fmt(minute) }}<b aria-hidden="true"> · </b><em>{{ period }}</em></output></div>
     </div>
-    <slot/>
     <div class="ruler-row day-row">
       <span class="ruler-label day-label" aria-hidden="true">
         <span>日</span><small class="tick-key"><span>初</span><span>正</span></small>
@@ -104,9 +105,9 @@ function end(event){
         <i class="day-bead" :style="{left:timelinePercent(minute)}" aria-hidden="true"></i>
       </div>
     </div>
+    <slot/>
     <div class="axis-controls">
       <div class="time-buttons">
-        <button type="button" class="play" :aria-pressed="playing" @click="emit('toggle-play')">{{ playing?'暂停':'播放一天' }}</button>
         <button type="button" aria-label="后退十五分钟" @click="emit('step',-15)">−15 分</button>
         <button type="button" aria-label="前进十五分钟" @click="emit('step',15)">+15 分</button>
         <button type="button" @click="emit('noon')">当地午正</button>
@@ -165,6 +166,10 @@ function end(event){
 .comparison-rail.xiazhi {top:30px;} .comparison-rail.dongzhi {top:44px;}
 .comparison-rail i {position:absolute;inset:0 calc(100% - var(--comparison-end)) 0 var(--comparison-start);background:var(--comparison-color);}
 .axis-controls {padding:9px var(--ruler-pad);border-top:1px solid var(--ruler-rule);justify-content:space-between;gap:8px 12px;flex-wrap:wrap;}
+.ruler-title {column-gap:12px;}
+.ruler-heading {flex-wrap:wrap;}
+.ruler-heading .ruler-title,.ruler-reading {flex-wrap:nowrap;white-space:nowrap;}
+.ruler-reading {margin-inline-start:auto;}
 .time-buttons,.axis-info {gap:6px;flex-wrap:wrap;}
 .time-buttons button {min-height:34px;padding:4px 10px;border:1px solid var(--dial-lightInk);background:transparent;color:var(--dial-ink);border-radius:2px;font:14px/1.2 var(--ruler-font);}
 .time-buttons button:hover {border-color:var(--dial-cinnabar);color:var(--dial-cinnabar);}
@@ -188,6 +193,9 @@ function end(event){
 @media(max-width:640px){
  .time-buttons button {min-height:44px;padding-inline:8px;font-size:12px;}
  .time-buttons .play {min-width:66px;}
+ .ruler-heading {gap:4px 8px;padding-block:4px;}
+ .ruler-title h3,.ruler-reading output {font-size:16px;}
+ .ruler-reading {gap:4px;}
  .axis-controls {row-gap:2px;}
  .axis-info {width:100%;justify-content:space-between;gap:4px;}
  .horizon-readout {gap:9px;}

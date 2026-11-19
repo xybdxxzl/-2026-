@@ -16,6 +16,7 @@ import { createSolarPath } from './solarPath.js';
 import { createGnomonReference } from './gnomonReference.js';
 import { solarDeclination, solarHourAngle, verticalGnomonShadow } from '../../lib/astro/sundialObservation.js';
 import { createSolsticeOverlay } from './solsticeOverlay.js';
+import { starVisibility } from '../../lib/astro/celestial.js';
 import { createCelestialDome } from './celestialDome.js';
 import starData from '../../data/sundialStars.json';
 
@@ -347,7 +348,9 @@ export class SundialScene {
     this.skyGroup.scale.setScalar(scale);
     this.skyGroup.position.copy(center).multiplyScalar(1-scale);
     this.sun.position.copy(center).addScaledVector(sun,sunOrbitRadius);
-    this.sun.scale.setScalar(.183/scale);
+    const twilight=blend*starVisibility(solar.altitude);
+    this.setTwilight(twilight);
+    this.sun.scale.setScalar(.183*(1-.62*twilight)/scale);
     this.sun.visible=solar.altitude>0||Boolean(this.layers.dome);
     this.sun.material.opacity=solar.altitude>0?1:.50;
     const comparisonCenter=this.reference.top.clone().lerp(center,blend);

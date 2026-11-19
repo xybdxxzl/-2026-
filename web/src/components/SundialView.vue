@@ -410,6 +410,8 @@ syncDraft();
                 <h2>{{ isBowl ? '半球碗式日晷' : '双面赤道式日晷' }}</h2>
                 <p>{{ place.name }}<span aria-hidden="true"> / </span>{{ date }}</p>
               </div>
+              <button v-if="!isFlat" type="button" class="dome-toggle" :aria-pressed="layers.dome"
+                @click="layers.dome=!layers.dome">{{ layers.dome ? '回看日晷' : '展开天球' }}</button>
               <div class="scene-switches">
                 <RulerSegments label="日晷器型" :model-value="instrumentKind" :options="instruments" @update:model-value="chooseInstrument"/>
                 <RulerSegments v-if="!isFlat" label="观察视角" :model-value="preset" :options="cameraOptions" @update:model-value="setPreset"/>
@@ -430,12 +432,20 @@ syncDraft();
               <p v-if="fallback" class="scene-note" role="status">三维暂不可用，已切换为二维图。</p>
               <p v-else-if="!forceFlat && !ready" class="scene-note" role="status">正在准备三维场景</p>
             </div>
+            <section class="time-bands" aria-label="授时尺">
+              <TimeAxis :value="sliderValue" :playing="playing" v-model:speed="speed" :solar="solar" :daylight="daylight"
+                :samples="dayPoints" :comparison="solsticeDaylight"
+                @input="previewSlider" @commit="commit()" @toggle-play="togglePlay" @step="stepMinutes" @noon="setNoon">
+                <YearSlider sky-band :longitude="calendarLongitude" :date="date" :active-term="highlighted"
+                  :reduced-motion="motionPreferences.reduced.value" @day-step="previewCalendarStep" @finish="finishCalendar"
+                  @term-step="moveCalendarTerm" @select-term="chooseCalendarTerm"/>
+              </TimeAxis>
+            </section>
             <div class="scene-tools" aria-label="观测工具">
                 <button type="button" class="light-control" :aria-pressed="layers.ray" @click="layers.ray=!layers.ray">
                   <UiIcon name="sun" />光影关系
                 </button>
                 <button type="button" :aria-pressed="solsticeMode" @click="toggleSolstice">二至对照</button>
-                <button v-if="!isFlat" type="button" :aria-pressed="layers.dome" @click="layers.dome=!layers.dome">天球</button>
                 <div v-if="solsticeMode" class="scene-driver" role="group" aria-label="驱动日照的节气">
                   <button v-for="id in solsticeIds" :key="id" type="button" :aria-pressed="current.selected===id"
                     @click="change(() => selectComparison(id))">{{ solsticeNames[id] }}</button>
@@ -470,15 +480,6 @@ syncDraft();
               </div>
             </footer>
           </div>
-          <section class="time-bands" aria-label="授时尺">
-            <TimeAxis :value="sliderValue" :playing="playing" v-model:speed="speed" :solar="solar" :daylight="daylight"
-              :samples="dayPoints" :comparison="solsticeDaylight"
-              @input="previewSlider" @commit="commit()" @toggle-play="togglePlay" @step="stepMinutes" @noon="setNoon">
-              <YearSlider sky-band :longitude="calendarLongitude" :date="date" :active-term="highlighted"
-                :reduced-motion="motionPreferences.reduced.value" @day-step="previewCalendarStep" @finish="finishCalendar"
-                @term-step="moveCalendarTerm" @select-term="chooseCalendarTerm"/>
-            </TimeAxis>
-          </section>
           <section v-if="solsticeMode" class="solstice-comparison" aria-label="二至对照读数">
             <div class="quick-compare">
               <span>同一真太阳时 {{ formatSolarTime(compareTime) }}</span>
@@ -1009,6 +1010,10 @@ syncDraft();
 .gnomon-reference {
   margin: 20px 0;
 }
+@media (min-width:961px) and (max-height:800px) {
+  .scene-viewport {height:clamp(320px,46dvh,370px);}
+  .scene-viewport.dome-viewport {height:clamp(350px,50dvh,400px);}
+}
 @media (max-width: 960px) {
   .sundial-page .dial-experience {
     grid-template-columns: minmax(0, 1fr);
@@ -1089,21 +1094,23 @@ syncDraft();
   --ruler-pad:18px; --ruler-label:38px;
   --ruler-rule:color-mix(in srgb,var(--dial-lightInk) 40%,transparent);
   --ruler-mark:color-mix(in srgb,var(--dial-lightInk) 70%,var(--dial-ink));
-  margin-top:14px; border:1px solid var(--ruler-rule); border-radius:2px;
+  border-top:1px solid var(--ruler-rule);
   background:var(--dial-paper); container-type:inline-size;
 }
 .time-bands :deep(.ruler-row) {
   display:grid; grid-template-columns:var(--ruler-label) minmax(0,1fr);
   align-items:center; gap:12px; margin-inline:var(--ruler-pad);
 }
-.time-bands :deep(.year-row) {padding-top:10px;padding-bottom:3px;border-bottom:1px solid var(--ruler-rule);}
+.time-bands :deep(.year-row) {padding-top:10px;padding-bottom:3px;border-top:1px solid var(--ruler-rule);}
 .time-bands :deep(.day-row) {padding-block:4px;}
 .time-bands :deep(.ruler-label) {align-self:stretch;display:grid;align-items:center;border-right:1px solid var(--ruler-rule);font:20px/1 var(--ruler-font);color:var(--dial-ink);}
 .scene-frame {border-radius:2px;border-color:color-mix(in srgb,var(--dial-lightInk) 40%,transparent);box-shadow:none;}
 .scene-toolbar {align-items:center;justify-content:space-between;gap:6px 12px;font-family:var(--ruler-font);}
 .scene-name h2 {font:20px/1.4 var(--ruler-font);}
 .scene-switches,.scene-tools,.surface-tools {display:flex;align-items:center;}
-.scene-switches {margin-left:auto;gap:8px;flex-wrap:nowrap;max-width:100%;overflow-x:auto;}
+.scene-toolbar {flex-wrap:wrap;}
+.dome-toggle {margin-left:auto;}
+.scene-switches {margin-left:0;gap:8px;flex-wrap:nowrap;max-width:100%;overflow-x:auto;}
 .scene-switches > :last-child:not(:first-child) {padding-left:8px;border-left:1px solid var(--stage-edge);}
 .scene-tools {gap:6px;flex-wrap:wrap;padding:6px 14px;border-top:1px solid var(--line);font:14px/1.2 var(--ruler-font);}
 .scene-tools > button,.surface-tools > button,.scene-tools .scene-driver button {
@@ -1119,7 +1126,8 @@ syncDraft();
 @media(max-width:640px){
   .time-bands {--ruler-pad:10px;--ruler-label:27px;}
   .time-bands :deep(.ruler-row) {gap:8px;}
-  .scene-toolbar {display:grid;gap:0;padding:6px 9px 0;}
+  .scene-toolbar {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 4px;padding:6px 9px 0;}
+  .scene-switches {grid-column:1 / -1;}
   .scene-switches {margin-left:0;justify-self:end;gap:3px;}
   .scene-switches > :last-child:not(:first-child) {padding-left:4px;}
   .scene-tools {gap:5px;padding:4px 8px;font-size:12px;}

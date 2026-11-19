@@ -25,14 +25,28 @@ export function createWarmEnvironment(renderer) {
   return target;
 }
 
-export function createPaperBackground() {
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=512;
+function createPaperBackground() {
+  const canvas=document.createElement('canvas');
+  canvas.width=canvas.height=128;
   const context=canvas.getContext('2d');
-  const wash=context.createRadialGradient(214,174,10,245,233,405);
-  wash.addColorStop(0,palette.studioPaper);wash.addColorStop(1,palette.studioEdge);
-  context.fillStyle=wash;context.fillRect(0,0,512,512);
-  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
-  return texture;
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  texture.generateMipmaps=false;
+  texture.minFilter=THREE.LinearFilter;
+  const day=[palette.studioPaper,palette.studioEdge].map(hex=>new THREE.Color(hex));
+  const dusk=['#CDD9D7','#899CA2'].map(hex=>new THREE.Color(hex));
+  let previousStep=-1;
+  function setTwilight(amount) {
+    const step=Math.round(amount*64);
+    if(step===previousStep)return;
+    previousStep=step;
+    const wash=context.createRadialGradient(53.5,43.5,2.5,61.25,58.25,101.25);
+    day.forEach((color,i)=>wash.addColorStop(i,color.clone().lerp(dusk[i],step/64).getStyle()));
+    context.fillStyle=wash;context.fillRect(0,0,128,128);
+    texture.needsUpdate=true;
+  }
+  setTwilight(0);
+  return {texture,setTwilight};
 }
 
 export function createStage() {
@@ -63,7 +77,7 @@ export function createStudio(renderer,scene,compact) {
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.BasicShadowMap;
-  const paperBackground=createPaperBackground(),environmentTarget=createWarmEnvironment(renderer);
+  const {texture:paperBackground,setTwilight}=createPaperBackground(),environmentTarget=createWarmEnvironment(renderer);
   scene.background=paperBackground;scene.environment=environmentTarget.texture;
   const fill=new THREE.HemisphereLight(palette.sky,palette.ground,.32);
   const light=new THREE.DirectionalLight(palette.sunlight,2.35);
@@ -81,7 +95,7 @@ export function createStudio(renderer,scene,compact) {
   }
   filterSolarShadow(shade.material);
   scene.add(fill,light,light.target,shade,contact);
-  return {scene,fill,light,shade,contact,stageShadow:shade.material,solarSpread,supportSpread,filterSolarShadow,environmentTarget,paperBackground};
+  return {scene,fill,light,shade,contact,stageShadow:shade.material,solarSpread,supportSpread,filterSolarShadow,environmentTarget,paperBackground,setTwilight};
 }
 
 export function setStudioSun(studio,center,direction,altitude) {
